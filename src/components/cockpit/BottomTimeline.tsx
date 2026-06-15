@@ -30,35 +30,43 @@ interface SparklineProps {
   color: string;
   label: string;
   maxY?: number;
+  isFirst?: boolean;
 }
 
-const Sparkline: React.FC<SparklineProps> = ({ data, dataKey, color, label, maxY = 1 }) => (
-  <div className="flex flex-col h-full">
-    <span className="text-[8px] text-slate-500 uppercase tracking-wider mb-0.5 px-1">{label}</span>
-    <div className="flex-1 min-h-0">
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 2, right: 2, bottom: 0, left: 0 }}>
-          <defs>
-            <linearGradient id={`gradient-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={color} stopOpacity={0.3} />
-              <stop offset="100%" stopColor={color} stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <YAxis domain={[0, maxY]} hide />
-          <Area
-            type="monotone"
-            dataKey={dataKey}
-            stroke={color}
-            strokeWidth={1.5}
-            fill={`url(#gradient-${dataKey})`}
-            isAnimationActive={false}
-            dot={false}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+const Sparkline: React.FC<SparklineProps> = ({ data, dataKey, color, label, maxY = 1, isFirst = false }) => {
+  // Get current value from last data point
+  const lastPoint = data[data.length - 1];
+  const currentValue = lastPoint ? Math.round((lastPoint[dataKey as keyof TimelineDataPoint] as number) * 100) : 0;
+
+  return (
+    <div className={`flex flex-col h-full bg-gradient-to-b from-slate-800/20 to-transparent ${!isFirst ? 'border-l border-slate-700/30' : ''}`}>
+      <span className="text-[9px] text-slate-400 uppercase tracking-wider mb-0.5 px-1">{label}</span>
+      <span className="text-[10px] font-mono font-bold px-1" style={{ color }}>{currentValue}%</span>
+      <div className="flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 2, right: 2, bottom: 0, left: 0 }}>
+            <defs>
+              <linearGradient id={`gradient-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={color} stopOpacity={0.3} />
+                <stop offset="100%" stopColor={color} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <YAxis domain={[0, maxY]} hide />
+            <Area
+              type="monotone"
+              dataKey={dataKey}
+              stroke={color}
+              strokeWidth={1.5}
+              fill={`url(#gradient-${dataKey})`}
+              isAnimationActive={false}
+              dot={false}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Alert history bar
 interface AlertMarker {
@@ -103,7 +111,7 @@ export const BottomTimeline: React.FC<BottomTimelineProps> = ({ data }) => {
     <div className="bg-dms-panel rounded-lg border border-dms-accent/20 shadow-[0_0_8px_rgba(0,212,255,0.1)] p-2 h-full flex flex-col">
       {/* Charts Row */}
       <div className="flex-1 grid grid-cols-6 gap-1 min-h-0">
-        <Sparkline data={chartData} dataKey="eyesOffRoad" color="#ff6b35" label="Eyes Off Road" />
+        <Sparkline data={chartData} dataKey="eyesOffRoad" color="#ff6b35" label="Eyes Off Road" isFirst />
         <Sparkline data={chartData} dataKey="blinkRate" color="#00d4ff" label="Blink Rate" />
         <Sparkline data={chartData} dataKey="perclos" color="#ffbb33" label="PERCLOS" />
         <Sparkline data={chartData} dataKey="phoneUse" color="#ff2d55" label="Phone Use" />
@@ -118,13 +126,17 @@ export const BottomTimeline: React.FC<BottomTimelineProps> = ({ data }) => {
           <div className="flex-1 h-3 bg-slate-900/50 rounded-sm relative overflow-hidden">
             {alerts.map((alert) => {
               const position = ((alert.time % MAX_POINTS) / MAX_POINTS) * 100;
+              const alertColor = alert.type === 'danger' ? '#ff2d55' : alert.type === 'warning' ? '#ff6b35' : '#00d4ff';
               return (
                 <div
                   key={alert.time}
-                  className={`absolute top-0 bottom-0 w-1 rounded-sm ${
+                  className={`absolute top-0 bottom-0 w-1.5 rounded-full ${
                     alert.type === 'danger' ? 'bg-dms-danger' : alert.type === 'warning' ? 'bg-dms-warning' : 'bg-dms-accent'
                   }`}
-                  style={{ left: `${position}%` }}
+                  style={{
+                    left: `${position}%`,
+                    boxShadow: `0 0 4px ${alertColor}`,
+                  }}
                 />
               );
             })}

@@ -1,0 +1,35 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Visual refinement of RightHeadPanel.tsx, LeftConsole.tsx, BottomTimeline.tsx, and src/index.css to achieve premium OEM-quality dashboard appearance with better spacing, glow effects, section headers, denser wireframes, and improved chart presentation.",
+  "status": "in_progress",
+  "steps": [
+    "Update src/components/cockpit/RightHeadPanel.tsx: Make the 3D head model SVG larger (use full available space). Add significantly denser wireframe lines (latitude/longitude grid with at least 8 horizontal and 6 vertical curves across the head shape). Add both eye glow points as larger pulsing circles (left and right eye). Show a unified gaze cone from the midpoint between both eyes (not from a single point) - make the cone wider and more visible with gradient opacity. Add a clearer 0-axis reference with labeled crosshairs. Keep CSS transform rotation based on headPose yaw/pitch/roll with the existing +-45 degree visual clamp. Make the panel background have a subtle radial gradient. Add a premium border glow when gaze is on-road.",
+    "Update src/components/cockpit/LeftConsole.tsx: Add section headers 'DRIVER', 'STATE', 'BEHAVIOR', 'ENGINEERING' as styled dividers (thin line with centered text, subtle glow). Make the state badge larger and more prominent with a pulsing border animation when not NORMAL. Improve spacing between sections. Make behavior icons feel more automotive: increase icon container size to w-8 h-8, add rounded-lg shape, add subtle inner shadow. Progress bars should have a subtle glow effect (box-shadow on the fill). Improve font hierarchy - section headers in 11px bold uppercase with letter-spacing.",
+    "Update src/components/cockpit/BottomTimeline.tsx: Add small value readouts above each sparkline chart showing the current numeric value (e.g., '42%' for PERCLOS). Improve chart labels with slightly larger font and better contrast. Make the alert markers in the timeline bar wider (w-1.5) with rounded shape and glow. Add subtle gradient backgrounds to each sparkline cell. Keep the bottom strip compact (180px height is set by Dashboard.tsx).",
+    "Update src/index.css: Add a new @keyframes for subtle-glow (softer version for progress bars). Add a @keyframes for panel-border-glow (for the center video panel outer glow). Add a glass-morphism utility class (.glass-panel) with backdrop-blur and semi-transparent background. Add a .section-header class for the styled dividers in LeftConsole. Add a scanline-overlay class that can be applied for the camera feed effect. Ensure all existing animations (glow, pulse-border, scanline) are preserved."
+  ],
+  "acceptance_criteria": [
+    "RightHeadPanel has at least 8 additional wireframe curves compared to current state",
+    "RightHeadPanel shows two distinct eye glow points",
+    "RightHeadPanel gaze cone originates from midpoint between eyes",
+    "LeftConsole has 4 section headers: DRIVER, STATE, BEHAVIOR, ENGINEERING",
+    "LeftConsole state badge has larger text and pulsing animation for non-NORMAL states",
+    "LeftConsole progress bars have glow effect via box-shadow",
+    "BottomTimeline shows current numeric values above each chart",
+    "BottomTimeline alert markers have glow and are more visible",
+    "src/index.css contains new animation keyframes without breaking existing ones",
+    "No new package dependencies introduced",
+    "All components still accept DMSTelemetry data prop correctly",
+    "Valid TypeScript/TSX syntax"
+  ],
+  "verification": [
+    "Read RightHeadPanel.tsx and count wireframe path elements (should be significantly more than current ~6)",
+    "Read LeftConsole.tsx and verify 4 section header strings are present",
+    "Read BottomTimeline.tsx and verify numeric value readouts exist above charts",
+    "Read src/index.css and verify new keyframe definitions are added alongside existing ones",
+    "Verify no imports reference packages outside the existing dependency list"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

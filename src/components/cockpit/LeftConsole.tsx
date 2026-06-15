@@ -53,19 +53,33 @@ function getOverallStateStyles(state: OverallState): string {
   }
 }
 
+interface SectionHeaderProps {
+  label: string;
+}
+
+const SectionHeader: React.FC<SectionHeaderProps> = ({ label }) => (
+  <div className="section-header">
+    <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500">{label}</span>
+  </div>
+);
+
 interface ProgressBarProps {
   label: string;
   value: number;
   color: string;
+  glowColor: string;
 }
 
-const ProgressBar: React.FC<ProgressBarProps> = ({ label, value, color }) => (
+const ProgressBar: React.FC<ProgressBarProps> = ({ label, value, color, glowColor }) => (
   <div className="flex items-center gap-2">
     <span className="text-[10px] text-slate-400 w-20 shrink-0">{label}</span>
     <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
       <div
         className={`h-full rounded-full transition-all duration-300 ${color}`}
-        style={{ width: `${Math.min(100, Math.max(0, value * 100))}%` }}
+        style={{
+          width: `${Math.min(100, Math.max(0, value * 100))}%`,
+          boxShadow: `0 0 4px ${glowColor}`,
+        }}
       />
     </div>
     <span className="text-[10px] font-mono text-slate-400 w-8 text-right">
@@ -84,7 +98,7 @@ interface BehaviorIconProps {
 const BehaviorIcon: React.FC<BehaviorIconProps> = ({ icon, label, active, danger }) => (
   <div className="flex flex-col items-center gap-0.5">
     <div
-      className={`w-6 h-6 rounded flex items-center justify-center ${
+      className={`w-8 h-8 rounded-lg flex items-center justify-center shadow-inner ${
         active
           ? danger
             ? 'bg-dms-danger/20 text-dms-danger'
@@ -108,7 +122,10 @@ export const LeftConsole: React.FC<LeftConsoleProps> = ({ data }) => {
   const availability = data.confidence.overall * (data.seatbelt.worn ? 1 : 0.5);
 
   return (
-    <div className="bg-dms-panel rounded-lg border border-dms-accent/20 shadow-[0_0_8px_rgba(0,212,255,0.1)] p-3 flex flex-col gap-3 overflow-y-auto h-full scrollbar-hide">
+    <div className="bg-dms-panel rounded-lg border border-dms-accent/20 shadow-[0_0_8px_rgba(0,212,255,0.1)] p-3 flex flex-col gap-4 overflow-y-auto h-full scrollbar-hide">
+      {/* DRIVER Section Header */}
+      <SectionHeader label="DRIVER" />
+
       {/* Driver ID & Tracking */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
@@ -129,47 +146,43 @@ export const LeftConsole: React.FC<LeftConsoleProps> = ({ data }) => {
         </div>
       </div>
 
-      {/* Divider */}
-      <div className="h-px bg-slate-700/50" />
+      {/* STATE Section Header */}
+      <SectionHeader label="STATE" />
 
       {/* Large State Badge */}
-      <div className={`text-center py-2 rounded-md border font-bold text-sm tracking-wider ${getOverallStateStyles(overallState)}`}>
+      <div className={`text-center py-3 rounded-md border font-bold text-base tracking-wider ${getOverallStateStyles(overallState)} ${overallState !== 'NORMAL' ? 'animate-pulse-border' : ''}`}>
         {overallState}
       </div>
 
-      {/* Divider */}
-      <div className="h-px bg-slate-700/50" />
+      {/* BEHAVIOR Section Header */}
+      <SectionHeader label="BEHAVIOR" />
 
       {/* Progress Bars */}
       <div className="space-y-2">
-        <ProgressBar label="Attention" value={attention} color="bg-dms-success" />
-        <ProgressBar label="Drowsiness" value={data.drowsiness.score / 100} color="bg-yellow-400" />
-        <ProgressBar label="Distraction" value={data.distraction.score / 100} color="bg-dms-warning" />
-        <ProgressBar label="Availability" value={availability} color="bg-dms-accent" />
+        <ProgressBar label="Attention" value={attention} color="bg-dms-success" glowColor="rgba(0, 230, 118, 0.4)" />
+        <ProgressBar label="Drowsiness" value={data.drowsiness.score / 100} color="bg-yellow-400" glowColor="rgba(250, 204, 21, 0.4)" />
+        <ProgressBar label="Distraction" value={data.distraction.score / 100} color="bg-dms-warning" glowColor="rgba(255, 107, 53, 0.4)" />
+        <ProgressBar label="Availability" value={availability} color="bg-dms-accent" glowColor="rgba(0, 212, 255, 0.4)" />
       </div>
-
-      {/* Divider */}
-      <div className="h-px bg-slate-700/50" />
 
       {/* Behavior Icons */}
       <div className="grid grid-cols-5 gap-2">
-        <BehaviorIcon icon={<Camera className="w-3.5 h-3.5" />} label="Cam" active={data.confidence.faceDetected} />
-        <BehaviorIcon icon={<Eye className="w-3.5 h-3.5" />} label="Awake" active={data.drowsiness.score < 50} />
-        <BehaviorIcon icon={<Focus className="w-3.5 h-3.5" />} label="Attn" active={data.gaze.onRoad} />
-        <BehaviorIcon icon={<ShieldCheck className="w-3.5 h-3.5" />} label="Belt" active={data.seatbelt.worn} />
-        <BehaviorIcon icon={<Phone className="w-3.5 h-3.5" />} label="Phone" active={data.phoneSuspicion.detected} danger />
-        <BehaviorIcon icon={<Cigarette className="w-3.5 h-3.5" />} label="Smoke" active={false} danger />
-        <BehaviorIcon icon={<EyeOff className="w-3.5 h-3.5" />} label="Yawn" active={data.drowsiness.yawnCount > 0} danger />
-        <BehaviorIcon icon={<AlertCircle className="w-3.5 h-3.5" />} label="Occl" active={!data.confidence.eyesVisible} danger />
-        <BehaviorIcon icon={<MessageSquare className="w-3.5 h-3.5" />} label="Talk" active={false} />
+        <BehaviorIcon icon={<Camera className="w-4 h-4" />} label="Cam" active={data.confidence.faceDetected} />
+        <BehaviorIcon icon={<Eye className="w-4 h-4" />} label="Awake" active={data.drowsiness.score < 50} />
+        <BehaviorIcon icon={<Focus className="w-4 h-4" />} label="Attn" active={data.gaze.onRoad} />
+        <BehaviorIcon icon={<ShieldCheck className="w-4 h-4" />} label="Belt" active={data.seatbelt.worn} />
+        <BehaviorIcon icon={<Phone className="w-4 h-4" />} label="Phone" active={data.phoneSuspicion.detected} danger />
+        <BehaviorIcon icon={<Cigarette className="w-4 h-4" />} label="Smoke" active={false} danger />
+        <BehaviorIcon icon={<EyeOff className="w-4 h-4" />} label="Yawn" active={data.drowsiness.yawnCount > 0} danger />
+        <BehaviorIcon icon={<AlertCircle className="w-4 h-4" />} label="Occl" active={!data.confidence.eyesVisible} danger />
+        <BehaviorIcon icon={<MessageSquare className="w-4 h-4" />} label="Talk" active={false} />
       </div>
 
-      {/* Divider */}
-      <div className="h-px bg-slate-700/50" />
+      {/* ENGINEERING Section Header */}
+      <SectionHeader label="ENGINEERING" />
 
       {/* Engineering Readout */}
       <div className="space-y-0.5">
-        <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Engineering</span>
         <div className="font-mono text-[10px] text-slate-400 space-y-0.5 bg-slate-900/50 rounded p-2">
           <div className="flex justify-between">
             <span className="text-slate-500">Head Yaw</span>
