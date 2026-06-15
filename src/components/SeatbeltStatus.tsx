@@ -36,7 +36,7 @@ export const SeatbeltStatus: React.FC<SeatbeltStatusProps> = ({ seatbelt }) => {
           {isWorn ? 'Worn' : 'Not Worn'}
         </p>
         <p className="text-[10px] text-slate-400 mt-1">
-          Confidence: {seatbelt.confidence.toFixed(0)}%
+          Confidence: {(seatbelt.confidence * 100).toFixed(0)}%
         </p>
       </div>
     </div>

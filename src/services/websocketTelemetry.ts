@@ -1,6 +1,27 @@
 import { DMSTelemetry } from '../types/dms';
 import { TelemetryProvider } from './telemetry';
 
+const REQUIRED_KEYS: ReadonlyArray<keyof DMSTelemetry> = [
+  'timestamp',
+  'driverState',
+  'headPose',
+  'gaze',
+  'drowsiness',
+  'distraction',
+  'seatbelt',
+  'phoneSuspicion',
+  'confidence',
+  'adasFusion',
+];
+
+function isValidTelemetryPayload(data: unknown): data is DMSTelemetry {
+  if (typeof data !== 'object' || data === null) return false;
+  for (const key of REQUIRED_KEYS) {
+    if (!(key in data)) return false;
+  }
+  return true;
+}
+
 export class WebSocketTelemetryProvider implements TelemetryProvider {
   private ws: WebSocket | null = null;
   private callback: ((data: DMSTelemetry) => void) | null = null;
@@ -50,15 +71,25 @@ export class WebSocketTelemetryProvider implements TelemetryProvider {
       this.ws = new WebSocket(this.url);
 
       this.ws.onopen = () => {
+        // Guard against race condition: if disconnect() was called while
+        // the socket was in CONNECTING state, close immediately.
+        if (!this.shouldReconnect) {
+          this.ws?.close();
+          return;
+        }
         this.connected = true;
         this.reconnectAttempts = 0;
       };
 
       this.ws.onmessage = (event: MessageEvent) => {
         try {
-          const data = JSON.parse(event.data as string) as DMSTelemetry;
+          const parsed: unknown = JSON.parse(event.data as string);
+          if (!isValidTelemetryPayload(parsed)) {
+            console.warn('[DMS WebSocket] Invalid payload: missing required keys');
+            return;
+          }
           if (this.callback) {
-            this.callback(data);
+            this.callback(parsed);
           }
         } catch {
           console.warn('[DMS WebSocket] Failed to parse message:', event.data);

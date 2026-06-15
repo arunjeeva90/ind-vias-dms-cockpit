@@ -233,11 +233,11 @@ describe('DummyTelemetryProvider', () => {
 
       for (const data of allData) {
         expect(data.confidence.overall).toBeGreaterThanOrEqual(0);
-        expect(data.confidence.overall).toBeLessThanOrEqual(100);
+        expect(data.confidence.overall).toBeLessThanOrEqual(1);
       }
     });
 
-    it('should produce seatbelt confidence between 0 and 100', () => {
+    it('should produce seatbelt confidence between 0 and 1', () => {
       const callback = vi.fn();
       provider.onData(callback);
       provider.connect();
@@ -248,7 +248,7 @@ describe('DummyTelemetryProvider', () => {
 
       for (const data of allData) {
         expect(data.seatbelt.confidence).toBeGreaterThanOrEqual(0);
-        expect(data.seatbelt.confidence).toBeLessThanOrEqual(100);
+        expect(data.seatbelt.confidence).toBeLessThanOrEqual(1);
       }
     });
 

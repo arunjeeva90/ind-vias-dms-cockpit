@@ -34,6 +34,7 @@ export interface DistractionMetrics {
 
 export interface SeatbeltStatus {
   worn: boolean;
+  /** Confidence value in range 0-1 (0 = no confidence, 1 = full confidence) */
   confidence: number;
 }
 
@@ -44,6 +45,7 @@ export interface PhoneSuspicion {
 }
 
 export interface DMSConfidence {
+  /** Overall confidence value in range 0-1 (0 = no confidence, 1 = full confidence) */
   overall: number;
   faceDetected: boolean;
   eyesVisible: boolean;

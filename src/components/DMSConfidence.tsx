@@ -20,7 +20,7 @@ function getQualityColor(quality: string): string {
 }
 
 export const DMSConfidence: React.FC<DMSConfidenceProps> = ({ confidence }) => {
-  const overallPct = Math.min(Math.max(confidence.overall, 0), 100);
+  const overallPct = Math.min(Math.max(confidence.overall * 100, 0), 100);
 
   return (
     <div className="bg-dms-panel rounded-xl border border-slate-700/50 p-4 h-full">
