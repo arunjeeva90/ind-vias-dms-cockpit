@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { DMSTelemetry } from '../types/dms';
-import { TelemetryProvider } from '../services/telemetry';
-import { DummyTelemetryProvider } from '../services/dummyTelemetry';
-import { WebSocketTelemetryProvider } from '../services/websocketTelemetry';
+import { TelemetryProvider, createTelemetryProvider } from '../services/telemetry';
 
 export type TelemetryMode = 'dummy' | 'websocket';
 
@@ -26,31 +24,30 @@ export function useTelemetry(options?: UseTelemetryOptions): UseTelemetryResult 
   const providerRef = useRef<TelemetryProvider | null>(null);
   const rafRef = useRef<number | null>(null);
   const latestDataRef = useRef<DMSTelemetry | null>(null);
+  const dirtyRef = useRef(false);
 
   const updateState = useCallback(() => {
-    if (latestDataRef.current) {
+    if (dirtyRef.current && latestDataRef.current) {
       setData(latestDataRef.current);
+      dirtyRef.current = false;
     }
     rafRef.current = requestAnimationFrame(updateState);
   }, []);
 
   useEffect(() => {
-    let provider: TelemetryProvider;
-
-    if (mode === 'websocket') {
-      provider = new WebSocketTelemetryProvider(url);
-    } else {
-      provider = new DummyTelemetryProvider();
-    }
+    const provider = createTelemetryProvider(mode, { url });
 
     providerRef.current = provider;
 
     provider.onData((telemetry) => {
       latestDataRef.current = telemetry;
+      dirtyRef.current = true;
     });
 
     provider.connect();
-    setConnected(true);
+
+    // Let the status poll be the source of truth for connected state
+    // instead of setting connected=true immediately after connect()
 
     // Start animation frame loop for smooth UI updates
     rafRef.current = requestAnimationFrame(updateState);

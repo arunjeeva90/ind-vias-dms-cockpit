@@ -302,7 +302,7 @@ export class DummyTelemetryProvider implements TelemetryProvider {
 
     const seatbelt: SeatbeltStatus = {
       worn: true,
-      confidence: 98 + Math.random() * 2,
+      confidence: 0.98 + Math.random() * 0.02,
     };
 
     const phoneSuspicion: PhoneSuspicion = {
@@ -312,7 +312,7 @@ export class DummyTelemetryProvider implements TelemetryProvider {
     };
 
     const confidence: DMSConfidence = {
-      overall: 92 + smoothNoise(t, 0.1) * 5,
+      overall: 0.92 + smoothNoise(t, 0.1) * 0.05,
       faceDetected: true,
       eyesVisible: this.internalState !== 'drowsy' || Math.random() > 0.2,
       quality: this.getImageQuality(t),
