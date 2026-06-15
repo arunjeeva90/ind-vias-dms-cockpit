@@ -34,8 +34,8 @@ export const Dashboard: React.FC = () => {
           <CenterVideoPanel data={data} />
 
           {/* Right Panel - Head Model + Decision Card stacked */}
-          <div className="flex flex-col gap-2 min-h-0 overflow-hidden">
-            <div className="flex-1 min-h-0">
+          <div className="flex flex-col gap-2 min-h-0 overflow-visible">
+            <div className="flex-1 min-h-0 overflow-visible">
               <RightHeadPanel data={data} />
             </div>
             <DecisionCard data={data} />
