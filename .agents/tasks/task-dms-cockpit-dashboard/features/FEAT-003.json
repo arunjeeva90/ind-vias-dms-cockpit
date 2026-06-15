@@ -2,7 +2,7 @@
   "id": "FEAT-003",
   "type": "feat",
   "description": "Add unit tests for the telemetry services and key components, add lint configuration, and ensure the full project passes build, lint, and test verification.",
-  "status": "pending",
+  "status": "in_progress",
   "steps": [
     "Create vitest.config.ts (or add vitest config in vite.config.ts) with jsdom environment, setup files for @testing-library/jest-dom, and coverage configuration.",
     "Create src/tests/setup.ts with import '@testing-library/jest-dom'.",
