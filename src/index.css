@@ -5,3 +5,54 @@
 body {
   @apply bg-dms-dark font-sans text-white min-h-screen;
 }
+
+/* Custom scrollbar hiding */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Glow animation for alerts */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(0, 212, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+  }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Pulse border for warning/danger states */
+@keyframes pulse-border {
+  0%, 100% {
+    border-color: rgba(255, 45, 85, 0.3);
+  }
+  50% {
+    border-color: rgba(255, 45, 85, 0.8);
+  }
+}
+
+.animate-pulse-border {
+  animation: pulse-border 1.5s ease-in-out infinite;
+}
+
+/* Scan line effect for video panel */
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.animate-scanline {
+  animation: scanline 4s linear infinite;
+}

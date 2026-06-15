@@ -1,0 +1,7 @@
+{
+  "task_id": "task-dms-cockpit-redesign",
+  "task_description": "Complete UI redesign of the IND-VIAS DualSight DMS Cockpit from simple card-grid layout to professional automotive cockpit console with 6 major sections: top status bar, left driver console, center live video panel, right 3D head model, bottom timeline, and decision explanation card.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001"],
+  "blocked_reason": null
+}

@@ -14,6 +14,9 @@ export default {
         'dms-danger': '#ff2d55',
         'dms-success': '#00e676',
       },
+      fontFamily: {
+        mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
+      },
     },
   },
   plugins: [],

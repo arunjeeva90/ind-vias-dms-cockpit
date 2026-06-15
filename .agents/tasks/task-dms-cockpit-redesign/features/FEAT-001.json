@@ -1,0 +1,39 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Complete UI redesign of the DMS Cockpit dashboard. Replace the simple card-grid Dashboard.tsx with a professional automotive cockpit console layout featuring: (1) Top status bar, (2) Left driver console panel, (3) Center live video panel, (4) Right 3D head model panel, (5) Bottom timeline strip, (6) Decision explanation card. Create all new components and rewrite Dashboard.tsx as the layout orchestrator.",
+  "status": "in_progress",
+  "steps": [
+    "Create src/components/cockpit/StatusBar.tsx - Top bar with: 'IND-VIAS DualSight DMS Cockpit' title, Driver State badge, FPS counter, Camera Health indicator, Tracking status, Pipeline Mode toggle (DUMMY/LIVE/REPLAY), Connection status dot. Use lucide-react icons. Dark navy background with thin bottom border.",
+    "Create src/components/cockpit/LeftConsole.tsx - Compact vertical console panel with: Driver ID field, Face tracking status (LOCKED/LOST), DMS Confidence bar, Large Driver State badge (NORMAL/MONITOR/WARNING/DANGER/DEGRADED mapped from DriverState enum), Progress bars for Attention/Drowsiness/Distraction/Availability, Grid of behavior status icons (Camera, Awake, Attentive, Seatbelt, Phone, Smoking, Yawn, Occlusion, Talking) using lucide-react, Engineering readout section with monospace font showing head yaw/pitch/roll, gaze yaw/pitch, PERCLOS, blink rate, eyes-off-road time.",
+    "Create src/components/cockpit/CenterVideoPanel.tsx - Large center panel simulating Indian right-hand-drive DMS camera view. Use CSS/SVG to render a dummy cabin interior: driver silhouette on LEFT side (right-hand drive), empty passenger area on RIGHT, rear seats partially visible, top-center camera perspective. Overlay with: animated face bounding box (positioned on driver), facial landmark dots (eyes, nose, mouth points), gaze direction arrow, head pose axis indicator (RGB XYZ lines). Overlay labels: 'Driver D1', 'Gaze: Front Windshield' / 'Gaze: Off Road' (dynamic from telemetry), 'State: Monitor/Warning' (dynamic), current time, 'Illumination: Auto'. The bounding box and gaze arrow should animate with telemetry data.",
+    "Create src/components/cockpit/RightHeadPanel.tsx - 3D-style driver head visualization using SVG/CSS wireframe. Must: render a wireframe head (oval + nose + ear outlines), rotate visually based on telemetry headPose.yaw/pitch/roll using CSS transform perspective, show 0-axis reference line (straight ahead), show unified center gaze cone/beam from face center (NOT from individual eyes), display 'Gaze: Road Center' or 'Gaze: Off Road' label, show yaw/pitch/roll numeric values. Use CSS 3D transforms (perspective, rotateX, rotateY, rotateZ) on an SVG element.",
+    "Create src/components/cockpit/BottomTimeline.tsx - Full-width bottom strip using recharts. Show 6 mini line charts in a horizontal row: (1) Eyes-off-road duration, (2) Eye closure/blink events, (3) PERCLOS percentage, (4) Phone use confidence, (5) Seatbelt state, (6) DMS confidence over time. Use a rolling window of last 60 data points. Each chart is a tiny sparkline using recharts LineChart or AreaChart. Include an alert history timeline bar showing colored markers for past alerts.",
+    "Create src/components/cockpit/DecisionCard.tsx - Compact card showing: Current state (from DriverState), Primary cause (derived: e.g., 'High PERCLOS' for drowsy, 'Gaze off road' for distracted), Secondary cause, Recommended HMI action (e.g., 'Audio warning', 'Haptic alert'), ADAS fusion readiness status with sub-indicators.",
+    "Rewrite src/components/Dashboard.tsx - Complete rewrite as layout orchestrator. Use CSS Grid for the cockpit layout: full-height viewport (h-screen), grid-template-rows for status bar (auto) / main content (1fr) / bottom timeline (auto), grid-template-columns for left console (280px) / center video (1fr) / right panel (320px). Import and compose all new cockpit components. Pass telemetry data from useTelemetry hook to each sub-component. Handle the null-data loading state.",
+    "Update src/index.css - Add any needed utility classes for the cockpit: custom scrollbar hiding, glow animations (@keyframes glow), pulse-border animation for alert states. Keep existing @tailwind directives.",
+    "Update tailwind.config.js - Add any additional theme extensions needed: fontFamily for monospace engineering readouts, additional spacing or sizing values if needed for the fixed-width panels."
+  ],
+  "acceptance_criteria": [
+    "Dashboard.tsx uses CSS Grid layout with StatusBar at top, 3-column main area (left console / center video / right head panel), and BottomTimeline at bottom",
+    "StatusBar shows IND-VIAS DualSight DMS Cockpit title, driver state, FPS, camera health, tracking, pipeline mode, connection status",
+    "LeftConsole shows driver ID, face tracking, confidence, state badge, 4 progress bars, behavior icons grid, engineering readout with head/gaze values",
+    "CenterVideoPanel renders dummy cabin interior with driver on left (RHD), face bounding box, landmark dots, gaze arrow, head pose axes, overlay labels",
+    "RightHeadPanel renders SVG wireframe head that rotates with telemetry data, shows unified gaze beam, 0-axis reference, yaw/pitch/roll values",
+    "BottomTimeline shows 6 mini sparkline charts using recharts with rolling 60-point window",
+    "DecisionCard shows current state, primary/secondary cause, HMI recommendation, ADAS readiness",
+    "All components properly import from types/dms.ts and use only available dependencies (react, recharts, lucide-react, tailwindcss)",
+    "Layout fits 1920x1080 without scrolling",
+    "Dark automotive theme with cyan/green/amber/red accent colors, rounded panels, thin glowing borders",
+    "Dummy telemetry data animates continuously across all panels"
+  ],
+  "verification": [
+    "All .tsx files have valid TypeScript/React syntax with no import errors referencing packages outside package.json",
+    "Dashboard.tsx uses CSS Grid with proper template definitions for the cockpit layout",
+    "All recharts imports use valid recharts components (LineChart, Line, AreaChart, Area, ResponsiveContainer)",
+    "All lucide-react imports use valid icon names from the lucide-react package",
+    "Tailwind classes reference only standard utilities plus custom dms-* colors defined in tailwind.config.js"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
