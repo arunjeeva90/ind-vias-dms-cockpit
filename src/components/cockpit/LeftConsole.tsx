@@ -102,8 +102,8 @@ export const LeftConsole: React.FC<LeftConsoleProps> = ({ data }) => {
   const overallState = mapDriverState(data.driverState, data.confidence.overall);
   const faceTracking = data.confidence.faceDetected ? 'LOCKED' : 'LOST';
 
-  // Derive attention score: inverse of distraction
-  const attention = 1 - data.distraction.score;
+  // Derive attention score: inverse of distraction (distraction.score is 0-100)
+  const attention = 1 - data.distraction.score / 100;
   // Availability: combination of confidence and seatbelt
   const availability = data.confidence.overall * (data.seatbelt.worn ? 1 : 0.5);
 
@@ -143,8 +143,8 @@ export const LeftConsole: React.FC<LeftConsoleProps> = ({ data }) => {
       {/* Progress Bars */}
       <div className="space-y-2">
         <ProgressBar label="Attention" value={attention} color="bg-dms-success" />
-        <ProgressBar label="Drowsiness" value={data.drowsiness.score} color="bg-yellow-400" />
-        <ProgressBar label="Distraction" value={data.distraction.score} color="bg-dms-warning" />
+        <ProgressBar label="Drowsiness" value={data.drowsiness.score / 100} color="bg-yellow-400" />
+        <ProgressBar label="Distraction" value={data.distraction.score / 100} color="bg-dms-warning" />
         <ProgressBar label="Availability" value={availability} color="bg-dms-accent" />
       </div>
 
@@ -154,7 +154,7 @@ export const LeftConsole: React.FC<LeftConsoleProps> = ({ data }) => {
       {/* Behavior Icons */}
       <div className="grid grid-cols-5 gap-2">
         <BehaviorIcon icon={<Camera className="w-3.5 h-3.5" />} label="Cam" active={data.confidence.faceDetected} />
-        <BehaviorIcon icon={<Eye className="w-3.5 h-3.5" />} label="Awake" active={data.drowsiness.score < 0.5} />
+        <BehaviorIcon icon={<Eye className="w-3.5 h-3.5" />} label="Awake" active={data.drowsiness.score < 50} />
         <BehaviorIcon icon={<Focus className="w-3.5 h-3.5" />} label="Attn" active={data.gaze.onRoad} />
         <BehaviorIcon icon={<ShieldCheck className="w-3.5 h-3.5" />} label="Belt" active={data.seatbelt.worn} />
         <BehaviorIcon icon={<Phone className="w-3.5 h-3.5" />} label="Phone" active={data.phoneSuspicion.detected} danger />
@@ -193,7 +193,7 @@ export const LeftConsole: React.FC<LeftConsoleProps> = ({ data }) => {
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500">PERCLOS</span>
-            <span className="text-dms-accent">{(data.drowsiness.perclos * 100).toFixed(1)}%</span>
+            <span className="text-dms-accent">{data.drowsiness.perclos.toFixed(1)}%</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500">Blink Rate</span>

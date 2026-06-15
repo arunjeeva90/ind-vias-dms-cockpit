@@ -77,8 +77,8 @@ export const BottomTimeline: React.FC<BottomTimelineProps> = ({ data }) => {
       t: counterRef.current++,
       eyesOffRoad: data.distraction.gazeOffRoad ? data.distraction.duration_ms / 5000 : 0,
       blinkRate: data.drowsiness.blinkRate / 30, // normalize to 0-1 range (30 blinks/min max)
-      perclos: data.drowsiness.perclos,
-      phoneUse: data.phoneSuspicion.confidence,
+      perclos: data.drowsiness.perclos / 100,
+      phoneUse: data.phoneSuspicion.confidence / 100,
       seatbelt: data.seatbelt.worn ? 1 : 0,
       confidence: data.confidence.overall,
     };

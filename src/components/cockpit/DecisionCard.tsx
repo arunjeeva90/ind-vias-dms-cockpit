@@ -20,7 +20,7 @@ function deriveDecision(data: DMSTelemetry): DecisionInfo {
       return {
         stateLabel: 'DROWSY',
         stateBadgeColor: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40',
-        primaryCause: `High PERCLOS (${(data.drowsiness.perclos * 100).toFixed(0)}%)`,
+        primaryCause: `High PERCLOS (${data.drowsiness.perclos.toFixed(0)}%)`,
         secondaryCause: `Blink rate: ${data.drowsiness.blinkRate.toFixed(0)} bpm`,
         hmiAction: 'Audio warning + seat vibration',
       };
@@ -29,7 +29,7 @@ function deriveDecision(data: DMSTelemetry): DecisionInfo {
         stateLabel: 'DISTRACTED',
         stateBadgeColor: 'bg-dms-warning/20 text-dms-warning border-dms-warning/40',
         primaryCause: `Gaze off road (${(data.distraction.duration_ms / 1000).toFixed(1)}s)`,
-        secondaryCause: `Distraction score: ${(data.distraction.score * 100).toFixed(0)}%`,
+        secondaryCause: `Distraction score: ${data.distraction.score.toFixed(0)}%`,
         hmiAction: 'Visual HUD alert',
       };
     case DriverState.FATIGUED:
@@ -44,7 +44,7 @@ function deriveDecision(data: DMSTelemetry): DecisionInfo {
       return {
         stateLabel: 'PHONE USE',
         stateBadgeColor: 'bg-dms-danger/20 text-dms-danger border-dms-danger/40',
-        primaryCause: `Phone detected (${(data.phoneSuspicion.confidence * 100).toFixed(0)}%)`,
+        primaryCause: `Phone detected (${data.phoneSuspicion.confidence.toFixed(0)}%)`,
         secondaryCause: `Hand: ${data.phoneSuspicion.handPosition}`,
         hmiAction: 'Audio warning + ADAS takeover prep',
       };
