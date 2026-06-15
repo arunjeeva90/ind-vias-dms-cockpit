@@ -1,0 +1,26 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "LTEPS branding integration: Update tailwind.config.js with LTEPS brand colors (deep indigo, magenta/pink), add circuit-trace background pattern and LTEPS branding to index.css and Dashboard.tsx/StatusBar.tsx, update global styling for premium OEM look.",
+  "status": "in_progress",
+  "steps": [
+    "Update tailwind.config.js: Add new brand colors - 'lteps-indigo': '#1a1050', 'lteps-violet': '#2d1b69', 'lteps-purple': '#4a1080', 'lteps-magenta': '#e91e63', 'lteps-pink': '#ff0066'. Keep all existing dms-* colors intact.",
+    "Update src/index.css: Add a subtle CSS circuit-trace background pattern using ::before pseudo-element on body or a wrapper. Add circuit-board line art as very faint decorative SVG data-uri background. Add new animations for brand glow effects. Update section-header gradient to use brand violet tones subtly.",
+    "Update src/components/cockpit/StatusBar.tsx: Change title to 'IND-VIAS DualSight DMS Cockpit'. Add LTEPS brand text mark (small 'LTEPS' text + subtitle 'L&T Electronic Products & Systems' in top-left area or near the title). Add subtext 'Driver-Aware ADAS Console | DMS + Forward Perception Ready' somewhere subtle. Use brand gradient accent on the status bar background.",
+    "Update src/components/Dashboard.tsx: Add a very faint circuit-trace overlay div behind the main content using absolute positioning. Keep it nearly invisible (opacity 0.03-0.05) so it does not disturb readability. Add subtle brand gradient border or accent to the overall frame."
+  ],
+  "acceptance_criteria": [
+    "tailwind.config.js has LTEPS brand colors defined",
+    "StatusBar shows 'IND-VIAS DualSight DMS Cockpit' title with LTEPS brand mark visible",
+    "Subtext 'Driver-Aware ADAS Console | DMS + Forward Perception Ready' visible somewhere",
+    "Background has faint circuit-trace pattern visible on close inspection",
+    "Brand colors (indigo/violet/magenta) appear subtly in accents, not overpowering",
+    "npx tsc --noEmit passes with no errors"
+  ],
+  "verification": [
+    "npx tsc --noEmit",
+    "npx vitest run"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

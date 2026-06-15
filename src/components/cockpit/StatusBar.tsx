@@ -48,12 +48,33 @@ export const StatusBar: React.FC<StatusBarProps> = ({ data, connected, mode }) =
   const tracking = data?.confidence.faceDetected ? 'LOCKED' : 'LOST';
 
   return (
-    <div className="h-12 bg-dms-panel/80 border-b border-dms-accent/20 flex items-center px-4 gap-6 shadow-[0_2px_8px_rgba(0,212,255,0.05)]">
+    <div className="h-12 bg-dms-panel/80 border-b border-dms-accent/20 flex items-center px-4 gap-6 shadow-[0_2px_8px_rgba(0,212,255,0.05)] relative overflow-hidden">
+      {/* Brand gradient accent - thin top border */}
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-lteps-indigo via-lteps-purple to-lteps-magenta" />
+
+      {/* LTEPS Brand Mark */}
+      <div className="flex flex-col items-start mr-2">
+        <span className="text-[11px] font-bold tracking-widest text-lteps-magenta animate-brand-glow">
+          LTEPS
+        </span>
+        <span className="text-[7px] text-lteps-violet/70 leading-tight whitespace-nowrap">
+          L&T Electronic Products & Systems
+        </span>
+      </div>
+
+      {/* Divider */}
+      <div className="w-px h-6 bg-lteps-violet/40" />
+
       {/* Title */}
-      <div className="flex items-center gap-2 mr-4">
-        <MonitorDot className="w-5 h-5 text-dms-accent" />
-        <span className="text-sm font-bold text-dms-accent tracking-wider whitespace-nowrap">
-          IND-VIAS DualSight DMS Cockpit
+      <div className="flex flex-col items-start mr-4">
+        <div className="flex items-center gap-2">
+          <MonitorDot className="w-5 h-5 text-dms-accent" />
+          <span className="text-sm font-bold text-dms-accent tracking-wider whitespace-nowrap">
+            IND-VIAS DualSight DMS Cockpit
+          </span>
+        </div>
+        <span className="text-[8px] text-slate-500 ml-7 whitespace-nowrap">
+          Driver-Aware ADAS Console | DMS + Forward Perception Ready
         </span>
       </div>
 

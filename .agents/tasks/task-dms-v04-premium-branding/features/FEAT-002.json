@@ -1,0 +1,27 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Major overhaul of CenterVideoPanel.tsx to create a realistic DMS camera simulation with dense facial landmarks, proper gaze visualization, RGB pose axes, and comprehensive overlay labels. Also improve RightHeadPanel.tsx with a much denser face mesh, proper dual-eye gaze cone, calibration indicators, and eye openness display.",
+  "status": "pending",
+  "steps": [
+    "Rewrite src/components/cockpit/CenterVideoPanel.tsx with these improvements: (a) Keep the existing SVG cabin layout (RHD, driver on left, steering wheel, seats, center console) but refine shading with darker tones and more depth via layered gradients. (b) Make face bounding box smaller - only around the face (not upper body). Current faceW=80, faceH=95 is good but ensure it only covers the face oval area. (c) Add MORE facial landmark dots: eyebrows (2 points each), eye corners (4 per eye already good), nose bridge + nose tip + nose wings (5 total), mouth (upper lip center, lower lip center, left corner, right corner = 4 points), jawline (5-7 dots along jaw curve from ear to chin). Use green glow for eye landmarks, cyan for nose/mouth, and white/dim for jawline. (d) Add eye region highlight - a subtle glowing rectangle or ellipse around each eye pair region. (e) Gaze arrow should originate from the midpoint between both eyes and point toward windshield direction. Keep existing implementation but make arrow longer and more prominent. (f) Keep RGB head-pose axes (X red, Y green, Z blue) but move them to upper-right of the face bbox for clarity. (g) Add these overlay labels: 'Driver D1' above face bbox, 'Face 95%' (using data.confidence.overall) near the bbox top-right corner, gaze zone label showing current zone, state label showing Normal/Monitor/Warning/Danger, 'CAM-01 IR 940nm' top-left (already exists), 'Illumination: Auto' bottom-left (already exists), timestamp (already exists). (h) Ensure the bottom confidence/scan bar remains. (i) Add vignette effect - darken corners of the video panel using a radial gradient overlay.",
+    "Rewrite src/components/cockpit/RightHeadPanel.tsx with these improvements: (a) Make the SVG head much larger - fill most of the available space. Increase the SVG container size. (b) Create a MUCH denser wireframe mesh: Add 15-20 latitude lines (horizontal curves across the face) and 10-12 longitude lines (vertical curves). Add extra density around eyes (6-8 small curves forming eye socket mesh), nose (triangular mesh pattern with 8-10 small segments), mouth (curved mesh lines around lips), jawline (follow jaw contour with 5-6 parallel curves), forehead (4-5 horizontal curves with slight curvature), cheeks (2-3 diagonal mesh lines each side). (c) Add neck lines - 2-3 vertical lines below jaw extending down, and hint of shoulders with 2 angled lines. (d) Make eyes more visible - larger eye sockets, brighter glow points, add iris circles inside each eye. (e) IMPORTANT: Gaze beam must originate from the midpoint between both eyes (cx=100, cy=78 in current coords) OR from both eyes symmetrically as a unified translucent cone. Do NOT use single-eye beam. Keep the existing unified cone but make it wider and more translucent. (f) Keep the 0-axis reference lines (yaw/pitch cross-hairs). (g) Keep CSS 3D rotation based on headPose yaw/pitch/roll, clamped to +-45 degrees. (h) Add below the SVG or in a panel section: calibration text '0-axis calibrated' and 'Road-facing neutral pose', gaze label 'Gaze: Road Center / Off Road', 'Head Pose Valid', 'Tracking Locked', eye openness indicators 'Eye L: OPEN / Eye R: OPEN'. (i) Keep yaw/pitch/roll numeric display at bottom."
+  ],
+  "acceptance_criteria": [
+    "CenterVideoPanel has 20+ facial landmark dots (eyes, eyebrows, nose, mouth, jawline)",
+    "CenterVideoPanel shows Face confidence percentage label near bounding box",
+    "CenterVideoPanel shows gaze zone label, state label, driver ID label",
+    "CenterVideoPanel has vignette effect on corners",
+    "RightHeadPanel has significantly denser mesh lines (30+ path elements for the wireframe)",
+    "RightHeadPanel gaze cone originates from midpoint between both eyes, not single eye",
+    "RightHeadPanel shows calibration text, gaze label, tracking status, eye openness",
+    "RightHeadPanel has neck and shoulder hints in the wireframe",
+    "npx tsc --noEmit passes with no errors"
+  ],
+  "verification": [
+    "npx tsc --noEmit",
+    "npx vitest run"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

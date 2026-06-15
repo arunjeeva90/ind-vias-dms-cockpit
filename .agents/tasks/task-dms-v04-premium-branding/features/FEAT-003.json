@@ -1,0 +1,27 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Overhaul LeftConsole.tsx to OEM engineering panel with full sections (DRIVER, STATE with state ladder, BEHAVIOR icons as tiles, metrics with glowing bars, ENGINEERING readout, OUTPUT CONTRACT). Improve DecisionCard.tsx with richer decision logic including secondary causes, why explanation, degraded reason. Improve BottomTimeline.tsx with premium styling, state-history chip row, more trend lines, and better labels.",
+  "status": "pending",
+  "steps": [
+    "Rewrite src/components/cockpit/LeftConsole.tsx: (a) DRIVER section: Show Driver ID (D1), Face Track (LOCKED/LOST), DMS Conf (percentage), Camera Health (OK/DEGRADED), Calibration (OK). (b) STATE section: Large state badge (NORMAL/MONITOR/WARNING/DANGER/DEGRADED) - already exists, keep it. Add a state ladder below the badge showing all 5 states in order (NORMAL, MONITOR, WARNING, DANGER, DEGRADED) as small chips/pills in a horizontal or vertical row, with the current state highlighted and others dimmed. Use colors: green, cyan, amber, red, purple respectively. (c) BEHAVIOR section: Expand to 10 icon tiles in a 5x2 grid: Camera, Awake, Attentive, Seatbelt, Phone, Smoking, Yawn, Occlusion, Talking, Head Down. Each tile should be a small colored square (green=active/OK, grey=inactive, amber=warning, red=danger). Add 'Head Down' icon using lucide ChevronDown or ArrowDown. (d) METRICS subsection: Add DMS Confidence bar in addition to existing Attention, Drowsiness, Distraction, Availability bars. All bars should have subtle glow effect (already implemented via glowColor prop). (e) ENGINEERING section: Already good but add Eye Openness and Face Confidence and Image Quality rows. (f) Add new OUTPUT CONTRACT section at the bottom: Show 4 formal state outputs as compact rows: DROWSINESS_STATE, DISTRACTION_STATE, DRIVER_AVAILABILITY_STATE, DMS_CONFIDENCE_STATE. Each with a small colored dot indicating current value derived from telemetry.",
+    "Rewrite src/components/cockpit/DecisionCard.tsx: (a) Keep existing structure but add: Secondary Cause line (already exists as 'SECOND.' - keep it). (b) Add 'Confidence' display showing data.confidence.overall as percentage. (c) Add 'Degraded Reason' line that shows 'None' normally but shows a reason when confidence is low (e.g., 'Low face confidence', 'Eyes not visible'). (d) Add a 'Why?' explanation line at the bottom - a brief human-readable sentence explaining the decision logic. For NORMAL: 'All biometric indicators within safe thresholds'. For MONITOR: 'Early signs detected, monitoring escalation path'. For WARNING: 'Threshold exceeded, driver intervention needed'. For DANGER: 'Critical state - immediate ADAS escalation required'. (e) Add ADAS Fusion integration score display (data.adasFusion.integrationScore as percentage).",
+    "Rewrite src/components/cockpit/BottomTimeline.tsx: (a) Keep existing Sparkline component and chart structure but improve visual styling - add subtle background gradient to each chart cell, better label styling with brand colors. (b) Add a state-history chip row above or below the charts: show the last N state transitions as colored pill badges (NORMAL=green, MONITOR=cyan, WARNING=amber, DANGER=red, DEGRADED=purple). Track state history in a ref similar to existing alertsRef pattern. (c) Ensure all 6 sparklines remain: Eyes Off Road, Blink Rate, PERCLOS, Phone Use, Seatbelt, DMS Conf. (d) Add value readout prominently above each chart (already implemented as currentValue display - make it more prominent with larger font or brand color). (e) Make the alert timeline bar more visually premium with gradient background and better marker styling."
+  ],
+  "acceptance_criteria": [
+    "LeftConsole shows DRIVER, STATE, BEHAVIOR, ENGINEERING, and OUTPUT CONTRACT sections",
+    "LeftConsole has state ladder showing all 5 states with current one highlighted",
+    "LeftConsole has 10 behavior icon tiles in grid",
+    "LeftConsole OUTPUT CONTRACT section shows 4 formal DMS output states",
+    "DecisionCard shows confidence percentage, degraded reason, and Why explanation",
+    "BottomTimeline has state-history chip row showing recent state transitions",
+    "BottomTimeline sparklines have improved premium styling",
+    "npx tsc --noEmit passes with no errors"
+  ],
+  "verification": [
+    "npx tsc --noEmit",
+    "npx vitest run"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

@@ -1,0 +1,27 @@
+{
+  "project_type": "React SPA - DMS Engineering Cockpit Dashboard",
+  "language": "TypeScript",
+  "build_system": "Vite 5.4 with React plugin, Tailwind CSS via PostCSS",
+  "test_framework": "Vitest with @testing-library/react and jsdom",
+  "build_command": "npx tsc --noEmit",
+  "test_command": "npx vitest run",
+  "verification_instructions": "1. Run npx tsc --noEmit to verify no TypeScript errors. 2. Run npx vitest run for any tests. 3. Verify that npm run dev would serve correctly by checking vite config.",
+  "snapshot_or_generated_files": null,
+  "setup_instructions": "Dependencies already installed via pnpm. No further setup needed.",
+  "environment_constraints": "INTEGRATIONS_ONLY network - cannot install new npm packages. Must use only existing dependencies: react 18.3, react-dom 18.3, recharts 2.13, lucide-react 0.460, tailwindcss 3.4, typescript 5.6, vite 5.4. No Docker available.",
+  "contribution_requirements": "Do not modify: src/services/, src/hooks/useTelemetry.ts. Preserve dummy telemetry, WebSocket-ready structure, port 3000, existing file structure.",
+  "key_patterns": "Components use React.FC with typed props from types/dms.ts. Tailwind for styling with custom colors (dms-dark, dms-panel, dms-accent, dms-warning, dms-danger, dms-success). SVG-heavy visualization in CenterVideoPanel and RightHeadPanel. Lucide icons for status indicators. Recharts for timeline sparklines. CSS animations in index.css.",
+  "relevant_files": [
+    "src/components/cockpit/CenterVideoPanel.tsx",
+    "src/components/cockpit/RightHeadPanel.tsx",
+    "src/components/cockpit/LeftConsole.tsx",
+    "src/components/cockpit/BottomTimeline.tsx",
+    "src/components/cockpit/DecisionCard.tsx",
+    "src/components/cockpit/StatusBar.tsx",
+    "src/components/Dashboard.tsx",
+    "src/index.css",
+    "tailwind.config.js",
+    "src/types/dms.ts"
+  ],
+  "directory_structure": "Root: vite.config.ts, package.json, tailwind.config.js, tsconfig.json. src/: App.tsx, main.tsx, index.css, types/dms.ts, services/ (DO NOT MODIFY), hooks/useTelemetry.ts (DO NOT MODIFY), components/Dashboard.tsx, components/cockpit/ (6 panel components)."
+}

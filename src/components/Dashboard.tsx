@@ -11,7 +11,16 @@ export const Dashboard: React.FC = () => {
   const { data, connected, mode } = useTelemetry({ mode: 'dummy' });
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-dms-dark grid grid-rows-[auto_1fr_auto]">
+    <div className="h-screen w-screen overflow-hidden bg-dms-dark grid grid-rows-[auto_1fr_auto] relative">
+      {/* Circuit-trace overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none z-0"
+        style={{
+          opacity: 0.035,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cpath d='M30 0v60h90v30h-60v60h150v-90h30v120h-90v60h30v-30h90v-60h-30v-30h30v-90h-60v30h-30v-30z' fill='none' stroke='%231a1050' stroke-width='0.5'/%3E%3Ccircle cx='30' cy='60' r='2' fill='%232d1b69'/%3E%3Ccircle cx='120' cy='90' r='2' fill='%232d1b69'/%3E%3Ccircle cx='210' cy='150' r='2' fill='%232d1b69'/%3E%3Ccircle cx='150' cy='210' r='2' fill='%232d1b69'/%3E%3Ccircle cx='270' cy='90' r='2' fill='%232d1b69'/%3E%3Ccircle cx='60' cy='240' r='2' fill='%232d1b69'/%3E%3C/svg%3E")`,
+          backgroundRepeat: 'repeat',
+        }}
+      />
       {/* Top Status Bar */}
       <StatusBar data={data} connected={connected} mode={mode} />
 

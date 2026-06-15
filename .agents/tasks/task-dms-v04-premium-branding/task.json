@@ -1,0 +1,7 @@
+{
+  "task_id": "task-dms-v04-premium-branding",
+  "task_description": "Create v0.4 of IND-VIAS DualSight DMS Cockpit with LTEPS company branding, premium visual refinement, realistic center video panel, dense 3D face mesh, OEM engineering left console, intelligent decision card, and premium bottom timeline.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
+  "blocked_reason": null
+}
