@@ -36,8 +36,8 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
   // Face bounding box center (driver on LEFT side of frame in RHD camera view)
   const faceCx = 220 + boxOffsetX;
   const faceCy = 190 + boxOffsetY;
-  const faceW = 80;
-  const faceH = 95;
+  const faceW = 70;
+  const faceH = 85;
 
   // Face confidence percentage
   const faceConfPct = Math.round(data.confidence.overall * 100);
@@ -307,7 +307,7 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
           <path d="M 150,250 Q 160,230 185,225 L 255,225 Q 280,230 290,250 L 295,360 L 145,360 Z" fill="url(#cvp-driverBodyGrad)" stroke="#253855" strokeWidth="1" opacity="0.9" />
 
           {/* Neck */}
-          <path d="M 200,185 Q 200,200 195,215 L 195,225 L 245,225 L 245,215 Q 240,200 240,185" fill="url(#cvp-driverBodyGrad)" stroke="#253855" strokeWidth="0.8" opacity="0.85" />
+          <path d="M 205,185 Q 205,200 202,215 L 202,225 L 238,225 L 238,215 Q 235,200 235,185" fill="url(#cvp-driverBodyGrad)" stroke="#253855" strokeWidth="0.8" opacity="0.85" />
 
           {/* Head (oval, human-like) */}
           <ellipse cx={faceCx} cy={faceCy} rx="38" ry="48" fill="url(#cvp-driverHeadGrad)" stroke="#253855" strokeWidth="1.2" />
@@ -355,6 +355,35 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
           <ellipse cx={faceCx - 19} cy={faceCy - 8} rx="18" ry="10" fill="url(#cvp-eyeRegionGlow)" stroke="#00e676" strokeWidth="0.5" opacity="0.5" />
           {/* Right eye region */}
           <ellipse cx={faceCx + 19} cy={faceCy - 8} rx="18" ry="10" fill="url(#cvp-eyeRegionGlow)" stroke="#00e676" strokeWidth="0.5" opacity="0.5" />
+
+          {/* ===== IRIS/PUPIL DOTS (inside eye regions) ===== */}
+          {/* Left eye iris */}
+          <circle cx={faceCx - 19} cy={faceCy - 8} r="4.5" fill="none" stroke="#00e676" strokeWidth="0.8" opacity="0.6" />
+          <circle cx={faceCx - 19} cy={faceCy - 8} r="2.5" fill="#00e676" opacity="0.85" />
+          {/* Right eye iris */}
+          <circle cx={faceCx + 19} cy={faceCy - 8} r="4.5" fill="none" stroke="#00e676" strokeWidth="0.8" opacity="0.6" />
+          <circle cx={faceCx + 19} cy={faceCy - 8} r="2.5" fill="#00e676" opacity="0.85" />
+
+          {/* ===== FACE CONFIDENCE LABEL (near top-left of bounding box) ===== */}
+          <rect
+            x={faceCx - faceW / 2}
+            y={faceCy - faceH / 2 - 16}
+            width="48"
+            height="13"
+            rx="3"
+            fill="#000000"
+            opacity="0.65"
+          />
+          <text
+            x={faceCx - faceW / 2 + 4}
+            y={faceCy - faceH / 2 - 6}
+            fill="#00d4ff"
+            fontSize="9"
+            fontFamily="monospace"
+            fontWeight="bold"
+          >
+            Face {faceConfPct}%
+          </text>
 
           {/* ===== FACIAL LANDMARKS (~29 dots) ===== */}
 

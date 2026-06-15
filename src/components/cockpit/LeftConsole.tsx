@@ -281,22 +281,22 @@ export const LeftConsole: React.FC<LeftConsoleProps> = ({ data }) => {
       <div className="space-y-1 bg-slate-900/30 rounded p-2">
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${drowsinessOut.color}`} />
-          <span className="text-[9px] text-slate-500 w-28 shrink-0 uppercase">Drowsiness_State</span>
+          <span className="text-[9px] text-slate-500 w-28 shrink-0 uppercase">DROWSINESS_STATE</span>
           <span className="text-[10px] font-mono text-slate-300">{drowsinessOut.label}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${distractionOut.color}`} />
-          <span className="text-[9px] text-slate-500 w-28 shrink-0 uppercase">Distraction_State</span>
+          <span className="text-[9px] text-slate-500 w-28 shrink-0 uppercase">DISTRACTION_STATE</span>
           <span className="text-[10px] font-mono text-slate-300">{distractionOut.label}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${availabilityOut.color}`} />
-          <span className="text-[9px] text-slate-500 w-28 shrink-0 uppercase">Availability_State</span>
+          <span className="text-[9px] text-slate-500 w-28 shrink-0 uppercase">DRIVER_AVAILABILITY_STATE</span>
           <span className="text-[10px] font-mono text-slate-300">{availabilityOut.label}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${confidenceOut.color}`} />
-          <span className="text-[9px] text-slate-500 w-28 shrink-0 uppercase">DMS_Confidence</span>
+          <span className="text-[9px] text-slate-500 w-28 shrink-0 uppercase">DMS_CONFIDENCE_STATE</span>
           <span className="text-[10px] font-mono text-slate-300">{confidenceOut.label}</span>
         </div>
       </div>

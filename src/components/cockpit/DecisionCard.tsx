@@ -29,7 +29,7 @@ function deriveDecision(data: DMSTelemetry): DecisionInfo {
         primaryCause: `High PERCLOS (${data.drowsiness.perclos.toFixed(0)}%)`,
         secondaryCause: `Blink rate: ${data.drowsiness.blinkRate.toFixed(0)} bpm`,
         hmiAction: 'Audio warning + seat vibration',
-        whyExplanation: 'Early drowsiness signs detected, monitoring escalation path',
+        whyExplanation: 'High PERCLOS / blink pattern - early drowsiness signs detected',
       };
     case DriverState.DISTRACTED:
       return {
@@ -38,7 +38,7 @@ function deriveDecision(data: DMSTelemetry): DecisionInfo {
         primaryCause: `Gaze off road (${(data.distraction.duration_ms / 1000).toFixed(1)}s)`,
         secondaryCause: `Distraction score: ${data.distraction.score.toFixed(0)}%`,
         hmiAction: 'Visual HUD alert',
-        whyExplanation: 'Gaze-away threshold exceeded, driver intervention needed',
+        whyExplanation: 'Gaze-away threshold exceeded - potential distraction event',
       };
     case DriverState.FATIGUED:
       return {
@@ -47,7 +47,7 @@ function deriveDecision(data: DMSTelemetry): DecisionInfo {
         primaryCause: `Fatigue score critical`,
         secondaryCause: `Yawn count: ${data.drowsiness.yawnCount}`,
         hmiAction: 'Haptic alert + rest stop suggestion',
-        whyExplanation: 'Critical state detected - immediate ADAS escalation required',
+        whyExplanation: 'Microsleep / high drowsiness score - critical state, ADAS escalation',
       };
     case DriverState.PHONE_USE:
       return {
@@ -56,7 +56,7 @@ function deriveDecision(data: DMSTelemetry): DecisionInfo {
         primaryCause: `Phone detected (${data.phoneSuspicion.confidence.toFixed(0)}%)`,
         secondaryCause: `Hand: ${data.phoneSuspicion.handPosition}`,
         hmiAction: 'Audio warning + ADAS takeover prep',
-        whyExplanation: 'Critical state detected - immediate ADAS escalation required',
+        whyExplanation: 'Phone suspected + gaze away - immediate driver alert required',
       };
     default:
       return {

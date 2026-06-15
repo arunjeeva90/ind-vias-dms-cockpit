@@ -1,0 +1,30 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Refine CenterVideoPanel, LeftConsole, DecisionCard, and BottomTimeline for improved visual quality, proper DMS overlay realism, and explainability. This feature covers sections 4-7 of the requirements.",
+  "status": "in_progress",
+  "steps": [
+    "Refine src/components/cockpit/CenterVideoPanel.tsx: (A) Improve the driver face region - make the head shape more realistic with a properly proportioned oval, add subtle ear contours, improve hair region. (B) Make the face bounding box tighter around the face (reduce faceW/faceH slightly and ensure it hugs the head ellipse). (C) Add clearer eye landmarks - add iris/pupil dots inside the eye landmark regions, make upper/lower eyelid contours visible. (D) Add a face confidence label near the bounding box top-left corner showing 'Face XX%' with a small background. (E) Improve driver head/torso proportions - neck should be thinner relative to head, shoulders wider. (F) Keep driver on LEFT side (already correct for RHD), passenger on RIGHT. (G) Keep the rear-view mirror camera perspective. (H) Use the unified state mapping from FEAT-001 for the state overlay label.",
+    "Refine src/components/cockpit/LeftConsole.tsx: (A) Ensure DRIVER section shows: Driver ID, Face Track, DMS Confidence, Camera Health (using unified getCameraHealth), Calibration. (B) Ensure STATE section uses the unified mapping from FEAT-001. (C) Ensure state ladder (NORMAL/MONITOR/WARNING/DANGER/DEGRADED) highlights the current state clearly. (D) In the OUTPUT CONTRACT section, ensure all 4 output states are shown: DROWSINESS_STATE, DISTRACTION_STATE, DRIVER_AVAILABILITY_STATE, DMS_CONFIDENCE_STATE. (E) Make sure displayed values are logically consistent with StatusBar and DecisionCard by using the same unified utility functions.",
+    "Refine src/components/cockpit/DecisionCard.tsx: (A) Ensure it uses the unified state from FEAT-001. (B) Show: Current State badge, Primary Cause, Secondary Cause, Confidence percentage (from confidence.overall * 100), Recommended HMI Action, ADAS Fusion readiness, Degraded reason (if any), and Why? explanation line. (C) Improve the deriveDecision function to provide better explanations: DROWSY maps to 'High PERCLOS / blink pattern', MONITOR maps to 'short gaze-away event', WARNING maps to 'phone suspected + gaze away', DANGER maps to 'microsleep / high drowsiness / strong distraction'. (D) Add explicit degraded reason logic that checks confidence < 0.5.",
+    "Refine src/components/cockpit/BottomTimeline.tsx: (A) Ensure all percentages are correct - eyesOffRoad normalization, blinkRate normalization, PERCLOS display, confidence display. (B) Use unified state chip colors from FEAT-001 mapping. (C) Ensure the sparkline current value labels show correct percentages. (D) Verify the confidence sparkline shows data.confidence.overall correctly (it's 0-1, displayed as percentage via *100 in the sparkline component)."
+  ],
+  "acceptance_criteria": [
+    "CenterVideoPanel shows tighter face bounding box, clearer eye landmarks, and face confidence label near the bbox",
+    "CenterVideoPanel state overlay uses the unified state label from FEAT-001",
+    "LeftConsole OUTPUT CONTRACT section shows all 4 states: DROWSINESS_STATE, DISTRACTION_STATE, DRIVER_AVAILABILITY_STATE, DMS_CONFIDENCE_STATE",
+    "LeftConsole uses unified state mapping and camera health from FEAT-001",
+    "DecisionCard shows unified state, primary/secondary cause, confidence, HMI action, degraded reason, and Why? explanation",
+    "DecisionCard ADAS Integration no longer shows * 100 (fixed in FEAT-001, confirmed still correct)",
+    "BottomTimeline uses unified state chip colors and all percentage values are correct",
+    "No TypeScript errors (verified by code inspection)"
+  ],
+  "verification": [
+    "Read CenterVideoPanel.tsx and verify it imports from src/utils/driverStateMapping.ts",
+    "Read LeftConsole.tsx and verify OUTPUT CONTRACT section exists with 4 output states",
+    "Read DecisionCard.tsx and verify it uses unified state mapping and integrationScore is not multiplied by 100",
+    "Grep for 'driverStateMapping' in all cockpit components to confirm unified usage"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
