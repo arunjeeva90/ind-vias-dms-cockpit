@@ -13,20 +13,20 @@ function getGazeLabel(data: DMSTelemetry): string {
   return 'Off Road';
 }
 
-function getStateOverlayLabel(state: DriverState): { label: string; level: string } {
+function getStateOverlayLabel(state: DriverState): string {
   switch (state) {
     case DriverState.ATTENTIVE:
-      return { label: 'Normal', level: 'normal' };
+      return 'Normal';
     case DriverState.DROWSY:
-      return { label: 'Monitor', level: 'monitor' };
+      return 'Monitor';
     case DriverState.DISTRACTED:
-      return { label: 'Warning', level: 'warning' };
+      return 'Warning';
     case DriverState.FATIGUED:
-      return { label: 'Danger', level: 'danger' };
+      return 'Danger';
     case DriverState.PHONE_USE:
-      return { label: 'Alert', level: 'warning' };
+      return 'Alert';
     default:
-      return { label: 'Unknown', level: 'normal' };
+      return 'Unknown';
   }
 }
 
@@ -37,7 +37,7 @@ function getCurrentTime(): string {
 
 export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
   const gazeLabel = getGazeLabel(data);
-  const { label: stateLabel } = getStateOverlayLabel(data.driverState);
+  const stateLabel = getStateOverlayLabel(data.driverState);
 
   // Head pose affects bounding box position slightly
   const boxOffsetX = data.headPose.yaw * 0.3;
@@ -65,100 +65,100 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
           {/* ===== DEFS: Gradients, Filters, Markers ===== */}
           <defs>
             {/* Background gradient */}
-            <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <linearGradient id="cvp-bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#060a12" />
               <stop offset="40%" stopColor="#0a1020" />
               <stop offset="100%" stopColor="#050810" />
             </linearGradient>
 
             {/* Windshield gradient */}
-            <linearGradient id="windshieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <linearGradient id="cvp-windshieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#0a1525" />
               <stop offset="100%" stopColor="#060d18" stopOpacity="0.3" />
             </linearGradient>
 
             {/* Seat gradient - driver */}
-            <linearGradient id="driverSeatGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="cvp-driverSeatGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#1a2845" />
               <stop offset="50%" stopColor="#12203a" />
               <stop offset="100%" stopColor="#0d1828" />
             </linearGradient>
 
             {/* Seat gradient - passenger (dimmer) */}
-            <linearGradient id="passengerSeatGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="cvp-passengerSeatGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#121d35" />
               <stop offset="50%" stopColor="#0d1628" />
               <stop offset="100%" stopColor="#081020" />
             </linearGradient>
 
             {/* Headrest gradient */}
-            <linearGradient id="headrestGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <linearGradient id="cvp-headrestGrad" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#1e2d4a" />
               <stop offset="100%" stopColor="#0f1a2f" />
             </linearGradient>
 
             {/* Dashboard gradient */}
-            <linearGradient id="dashGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <linearGradient id="cvp-dashGrad" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#0a0e17" />
               <stop offset="100%" stopColor="#0d1420" />
             </linearGradient>
 
             {/* Center console gradient */}
-            <linearGradient id="consoleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <linearGradient id="cvp-consoleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#0f1825" />
               <stop offset="100%" stopColor="#080d18" />
             </linearGradient>
 
             {/* Steering wheel gradient */}
-            <radialGradient id="steeringGrad" cx="50%" cy="50%" r="50%">
+            <radialGradient id="cvp-steeringGrad" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="#1a2845" />
               <stop offset="100%" stopColor="#0d1828" />
             </radialGradient>
 
             {/* Driver silhouette body gradient */}
-            <linearGradient id="driverBodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <linearGradient id="cvp-driverBodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#1a2d4a" stopOpacity="0.9" />
               <stop offset="100%" stopColor="#0f1828" stopOpacity="0.85" />
             </linearGradient>
 
             {/* Driver head gradient */}
-            <radialGradient id="driverHeadGrad" cx="50%" cy="40%" r="55%">
+            <radialGradient id="cvp-driverHeadGrad" cx="50%" cy="40%" r="55%">
               <stop offset="0%" stopColor="#1e3050" stopOpacity="0.95" />
               <stop offset="70%" stopColor="#152540" stopOpacity="0.9" />
               <stop offset="100%" stopColor="#0d1828" stopOpacity="0.85" />
             </radialGradient>
 
             {/* Gaze arrow gradient */}
-            <linearGradient id="gazeArrowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <linearGradient id="cvp-gazeArrowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#00d4ff" stopOpacity="0.9" />
               <stop offset="100%" stopColor="#00d4ff" stopOpacity="0.1" />
             </linearGradient>
 
             {/* Seatbelt gradient */}
-            <linearGradient id="seatbeltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="cvp-seatbeltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#3a4a60" stopOpacity="0.8" />
               <stop offset="100%" stopColor="#2a3a50" stopOpacity="0.6" />
             </linearGradient>
 
             {/* IR glow for face area */}
-            <radialGradient id="faceIRGlow" cx="50%" cy="50%" r="50%">
+            <radialGradient id="cvp-faceIRGlow" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="#00d4ff" stopOpacity="0.05" />
               <stop offset="100%" stopColor="#00d4ff" stopOpacity="0" />
             </radialGradient>
 
             {/* Rear seats gradient */}
-            <linearGradient id="rearSeatGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <linearGradient id="cvp-rearSeatGrad" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#0a1220" />
               <stop offset="100%" stopColor="#060a14" />
             </linearGradient>
 
             {/* Shadow filter */}
-            <filter id="shadowFilter" x="-10%" y="-10%" width="120%" height="120%">
+            <filter id="cvp-shadowFilter" x="-10%" y="-10%" width="120%" height="120%">
               <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000000" floodOpacity="0.5" />
             </filter>
 
             {/* Soft glow filter */}
-            <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <filter id="cvp-softGlow" x="-20%" y="-20%" width="140%" height="140%">
               <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
@@ -167,7 +167,7 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
             </filter>
 
             {/* Cyan glow for bounding box */}
-            <filter id="cyanGlow" x="-30%" y="-30%" width="160%" height="160%">
+            <filter id="cvp-cyanGlow" x="-30%" y="-30%" width="160%" height="160%">
               <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
               <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 0.8 0.8 0 0  0 0.8 1 0 0  0 0 0 0.6 0" result="colored" />
               <feMerge>
@@ -177,7 +177,7 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
             </filter>
 
             {/* Green glow for eye landmarks */}
-            <filter id="greenGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <filter id="cvp-greenGlow" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
               <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 0 0 0 0.9  0 0 0 0 0.47  0 0 0 0.7 0" result="colored" />
               <feMerge>
@@ -187,7 +187,7 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
             </filter>
 
             {/* Cyan glow for nose/mouth landmarks */}
-            <filter id="cyanDotGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <filter id="cvp-cyanDotGlow" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur" />
               <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 0 0 0 0.83  0 0 0 0 1  0 0 0 0.6 0" result="colored" />
               <feMerge>
@@ -197,7 +197,7 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
             </filter>
 
             {/* Noise texture filter */}
-            <filter id="noiseFilter" x="0%" y="0%" width="100%" height="100%">
+            <filter id="cvp-noiseFilter" x="0%" y="0%" width="100%" height="100%">
               <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="4" seed="5" result="noise" />
               <feColorMatrix in="noise" type="saturate" values="0" result="grayNoise" />
               <feBlend in="SourceGraphic" in2="grayNoise" mode="overlay" result="noisy" />
@@ -207,34 +207,34 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
             </filter>
 
             {/* Scanline pattern */}
-            <pattern id="scanlines" patternUnits="userSpaceOnUse" width="800" height="4">
+            <pattern id="cvp-scanlines" patternUnits="userSpaceOnUse" width="800" height="4">
               <rect width="800" height="1" fill="#000000" opacity="0.08" />
               <rect y="2" width="800" height="1" fill="#ffffff" opacity="0.02" />
             </pattern>
 
             {/* Gaze arrowhead marker */}
-            <marker id="gazeArrowHead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <marker id="cvp-gazeArrowHead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
               <polygon points="0,0 8,3 0,6" fill="#00d4ff" opacity="0.8" />
             </marker>
           </defs>
 
           {/* ===== BACKGROUND ===== */}
-          <rect x="0" y="0" width="800" height="500" fill="url(#bgGrad)" />
+          <rect x="0" y="0" width="800" height="500" fill="url(#cvp-bgGrad)" />
 
           {/* ===== WINDSHIELD TOP REGION ===== */}
-          <rect x="0" y="0" width="800" height="80" fill="url(#windshieldGrad)" />
+          <rect x="0" y="0" width="800" height="80" fill="url(#cvp-windshieldGrad)" />
           <rect x="60" y="5" width="680" height="65" rx="3" fill="#0d1822" opacity="0.5" />
           {/* Windshield frame line */}
           <line x1="40" y1="75" x2="760" y2="75" stroke="#1a2840" strokeWidth="2" />
 
           {/* ===== REAR-VIEW MIRROR HOUSING ===== */}
-          <path d="M 355,5 L 355,45 Q 355,52 362,52 L 438,52 Q 445,52 445,45 L 445,5 Z" fill="#0d1420" stroke="#1a2535" strokeWidth="1.5" filter="url(#shadowFilter)" />
+          <path d="M 355,5 L 355,45 Q 355,52 362,52 L 438,52 Q 445,52 445,45 L 445,5 Z" fill="#0d1420" stroke="#1a2535" strokeWidth="1.5" filter="url(#cvp-shadowFilter)" />
           <rect x="365" y="12" width="70" height="32" rx="3" fill="#0a1118" stroke="#162030" strokeWidth="0.8" />
           {/* Mirror reflection hint */}
           <rect x="368" y="15" width="64" height="26" rx="2" fill="#080e18" opacity="0.7" />
 
           {/* ===== DASHBOARD / INSTRUMENT CLUSTER ===== */}
-          <rect x="0" y="72" width="800" height="55" fill="url(#dashGrad)" filter="url(#shadowFilter)" />
+          <rect x="0" y="72" width="800" height="55" fill="url(#cvp-dashGrad)" filter="url(#cvp-shadowFilter)" />
           {/* Instrument cluster behind steering (driver side - left) */}
           <rect x="120" y="80" width="140" height="40" rx="6" fill="#080c14" stroke="#152030" strokeWidth="1" />
           {/* Instrument gauges (subtle circles) */}
@@ -243,10 +243,10 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
           <circle cx="230" cy="100" r="8" fill="none" stroke="#1a2535" strokeWidth="0.6" />
 
           {/* ===== STEERING WHEEL (driver side - LEFT from camera POV) ===== */}
-          <circle cx="220" cy="290" r="62" fill="none" stroke="#1e2d45" strokeWidth="8" filter="url(#shadowFilter)" />
+          <circle cx="220" cy="290" r="62" fill="none" stroke="#1e2d45" strokeWidth="8" filter="url(#cvp-shadowFilter)" />
           <circle cx="220" cy="290" r="62" fill="none" stroke="#253855" strokeWidth="3" />
           {/* Steering wheel inner hub */}
-          <circle cx="220" cy="290" r="18" fill="url(#steeringGrad)" stroke="#253855" strokeWidth="2" />
+          <circle cx="220" cy="290" r="18" fill="url(#cvp-steeringGrad)" stroke="#253855" strokeWidth="2" />
           {/* Steering spokes */}
           <line x1="220" y1="272" x2="220" y2="240" stroke="#1e2d45" strokeWidth="5" strokeLinecap="round" />
           <line x1="200" y1="302" x2="170" y2="320" stroke="#1e2d45" strokeWidth="5" strokeLinecap="round" />
@@ -254,24 +254,24 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
 
           {/* ===== DRIVER SEAT (LEFT side - RHD) ===== */}
           {/* Seat back */}
-          <path d="M 130,160 Q 130,140 150,135 L 290,135 Q 310,140 310,160 L 310,400 Q 310,420 290,420 L 150,420 Q 130,420 130,400 Z" fill="url(#driverSeatGrad)" stroke="#1e2d4a" strokeWidth="1.5" filter="url(#shadowFilter)" />
+          <path d="M 130,160 Q 130,140 150,135 L 290,135 Q 310,140 310,160 L 310,400 Q 310,420 290,420 L 150,420 Q 130,420 130,400 Z" fill="url(#cvp-driverSeatGrad)" stroke="#1e2d4a" strokeWidth="1.5" filter="url(#cvp-shadowFilter)" />
           {/* Seat cushion bottom */}
           <path d="M 135,380 Q 135,370 145,365 L 295,365 Q 305,370 305,380 L 305,440 Q 305,450 295,450 L 145,450 Q 135,450 135,440 Z" fill="#0f1a2d" stroke="#1a2540" strokeWidth="1" />
           {/* Headrest */}
-          <rect x="170" y="120" width="100" height="45" rx="12" fill="url(#headrestGrad)" stroke="#253855" strokeWidth="1.5" filter="url(#shadowFilter)" />
+          <rect x="170" y="120" width="100" height="45" rx="12" fill="url(#cvp-headrestGrad)" stroke="#253855" strokeWidth="1.5" filter="url(#cvp-shadowFilter)" />
           {/* Headrest center depression */}
           <ellipse cx="220" cy="140" rx="25" ry="12" fill="#0d1828" opacity="0.4" />
 
           {/* ===== PASSENGER SEAT (RIGHT side - dimmer) ===== */}
           {/* Seat back */}
-          <path d="M 500,165 Q 500,145 520,140 L 660,140 Q 680,145 680,165 L 680,400 Q 680,420 660,420 L 520,420 Q 500,420 500,400 Z" fill="url(#passengerSeatGrad)" stroke="#152235" strokeWidth="1" opacity="0.8" />
+          <path d="M 500,165 Q 500,145 520,140 L 660,140 Q 680,145 680,165 L 680,400 Q 680,420 660,420 L 520,420 Q 500,420 500,400 Z" fill="url(#cvp-passengerSeatGrad)" stroke="#152235" strokeWidth="1" opacity="0.8" />
           {/* Seat cushion */}
           <path d="M 505,380 Q 505,370 515,365 L 665,365 Q 675,370 675,380 L 675,440 Q 675,450 665,450 L 515,450 Q 505,450 505,440 Z" fill="#0a1220" stroke="#12202f" strokeWidth="0.8" opacity="0.8" />
           {/* Headrest */}
           <rect x="545" y="125" width="90" height="42" rx="10" fill="#121d30" stroke="#1a2840" strokeWidth="1" opacity="0.75" />
 
           {/* ===== CENTER CONSOLE ===== */}
-          <rect x="320" y="200" width="170" height="280" rx="6" fill="url(#consoleGrad)" stroke="#1a2535" strokeWidth="1" filter="url(#shadowFilter)" />
+          <rect x="320" y="200" width="170" height="280" rx="6" fill="url(#cvp-consoleGrad)" stroke="#1a2535" strokeWidth="1" filter="url(#cvp-shadowFilter)" />
           {/* Gear lever area */}
           <rect x="370" y="310" width="70" height="55" rx="5" fill="#080d18" stroke="#12202f" strokeWidth="1" />
           {/* Gear lever knob */}
@@ -285,24 +285,24 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
           <line x1="330" y1="280" x2="480" y2="280" stroke="#1a2535" strokeWidth="0.5" opacity="0.5" />
 
           {/* ===== REAR SEATS (partially visible at bottom) ===== */}
-          <rect x="60" y="455" width="680" height="50" rx="5" fill="url(#rearSeatGrad)" stroke="#0f1825" strokeWidth="1" />
+          <rect x="60" y="455" width="680" height="50" rx="5" fill="url(#cvp-rearSeatGrad)" stroke="#0f1825" strokeWidth="1" />
           <line x1="280" y1="455" x2="280" y2="500" stroke="#0a1018" strokeWidth="1" opacity="0.5" />
           <line x1="520" y1="455" x2="520" y2="500" stroke="#0a1018" strokeWidth="1" opacity="0.5" />
 
           {/* ===== DRIVER SILHOUETTE ===== */}
           {/* Upper torso and shoulders */}
-          <path d="M 150,250 Q 160,230 185,225 L 255,225 Q 280,230 290,250 L 295,360 L 145,360 Z" fill="url(#driverBodyGrad)" stroke="#253855" strokeWidth="1" opacity="0.9" />
+          <path d="M 150,250 Q 160,230 185,225 L 255,225 Q 280,230 290,250 L 295,360 L 145,360 Z" fill="url(#cvp-driverBodyGrad)" stroke="#253855" strokeWidth="1" opacity="0.9" />
 
           {/* Neck */}
-          <path d="M 200,185 Q 200,200 195,215 L 195,225 L 245,225 L 245,215 Q 240,200 240,185" fill="url(#driverBodyGrad)" stroke="#253855" strokeWidth="0.8" opacity="0.85" />
+          <path d="M 200,185 Q 200,200 195,215 L 195,225 L 245,225 L 245,215 Q 240,200 240,185" fill="url(#cvp-driverBodyGrad)" stroke="#253855" strokeWidth="0.8" opacity="0.85" />
 
           {/* Head (oval, human-like) */}
-          <ellipse cx={faceCx} cy={faceCy} rx="38" ry="48" fill="url(#driverHeadGrad)" stroke="#253855" strokeWidth="1.2" />
+          <ellipse cx={faceCx} cy={faceCy} rx="38" ry="48" fill="url(#cvp-driverHeadGrad)" stroke="#253855" strokeWidth="1.2" />
           {/* Hair/top of head darker region */}
           <ellipse cx={faceCx} cy={faceCy - 25} rx="32" ry="25" fill="#0d1828" opacity="0.5" />
 
           {/* IR glow on face */}
-          <ellipse cx={faceCx} cy={faceCy} rx="50" ry="60" fill="url(#faceIRGlow)" />
+          <ellipse cx={faceCx} cy={faceCy} rx="50" ry="60" fill="url(#cvp-faceIRGlow)" />
 
           {/* Left arm reaching to steering wheel */}
           <path d="M 265,260 Q 275,280 270,310 Q 265,330 250,340" fill="none" stroke="#1a2d4a" strokeWidth="8" strokeLinecap="round" opacity="0.8" />
@@ -310,12 +310,12 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
           <path d="M 150,260 Q 140,280 145,300 Q 148,320 155,335" fill="none" stroke="#1a2d4a" strokeWidth="8" strokeLinecap="round" opacity="0.7" />
 
           {/* Seatbelt diagonal across chest */}
-          <line x1="270" y1="155" x2="175" y2="360" stroke="url(#seatbeltGrad)" strokeWidth="5" strokeLinecap="round" />
+          <line x1="270" y1="155" x2="175" y2="360" stroke="url(#cvp-seatbeltGrad)" strokeWidth="5" strokeLinecap="round" />
           {/* Seatbelt buckle hint */}
           <rect x="178" y="345" width="12" height="18" rx="2" fill="#2a3a55" stroke="#3a4a65" strokeWidth="0.8" />
 
           {/* ===== FACE BOUNDING BOX ===== */}
-          <g filter="url(#cyanGlow)">
+          <g filter="url(#cvp-cyanGlow)">
             {/* Main box */}
             <rect
               x={faceCx - faceW / 2}
@@ -339,26 +339,26 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
 
           {/* ===== FACIAL LANDMARKS (12+ dots) ===== */}
           {/* Left eye - 4 points (inner corner, outer corner, upper lid, lower lid) */}
-          <g filter="url(#greenGlow)">
+          <g filter="url(#cvp-greenGlow)">
             <circle cx={faceCx - 14} cy={faceCy - 8} r="2.2" fill="#00e676" /> {/* Left eye inner corner */}
             <circle cx={faceCx - 24} cy={faceCy - 8} r="2.2" fill="#00e676" /> {/* Left eye outer corner */}
             <circle cx={faceCx - 19} cy={faceCy - 12} r="1.8" fill="#00e676" /> {/* Left eye upper lid */}
             <circle cx={faceCx - 19} cy={faceCy - 5} r="1.8" fill="#00e676" /> {/* Left eye lower lid */}
           </g>
           {/* Right eye - 4 points */}
-          <g filter="url(#greenGlow)">
+          <g filter="url(#cvp-greenGlow)">
             <circle cx={faceCx + 14} cy={faceCy - 8} r="2.2" fill="#00e676" /> {/* Right eye inner corner */}
             <circle cx={faceCx + 24} cy={faceCy - 8} r="2.2" fill="#00e676" /> {/* Right eye outer corner */}
             <circle cx={faceCx + 19} cy={faceCy - 12} r="1.8" fill="#00e676" /> {/* Right eye upper lid */}
             <circle cx={faceCx + 19} cy={faceCy - 5} r="1.8" fill="#00e676" /> {/* Right eye lower lid */}
           </g>
           {/* Nose bridge */}
-          <g filter="url(#cyanDotGlow)">
+          <g filter="url(#cvp-cyanDotGlow)">
             <circle cx={faceCx} cy={faceCy - 2} r="1.8" fill="#00d4ff" /> {/* Nose bridge */}
             <circle cx={faceCx} cy={faceCy + 10} r="2.2" fill="#00d4ff" /> {/* Nose tip */}
           </g>
           {/* Mouth corners and chin */}
-          <g filter="url(#cyanDotGlow)">
+          <g filter="url(#cvp-cyanDotGlow)">
             <circle cx={faceCx - 12} cy={faceCy + 22} r="1.8" fill="#00d4ff" /> {/* Left mouth corner */}
             <circle cx={faceCx + 12} cy={faceCy + 22} r="1.8" fill="#00d4ff" /> {/* Right mouth corner */}
             <circle cx={faceCx} cy={faceCy + 38} r="1.8" fill="#00d4ff" /> {/* Chin */}
@@ -370,9 +370,9 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
             y1={faceCy - 10}
             x2={faceCx + gazeAngleX}
             y2={faceCy - 10 + gazeAngleY}
-            stroke="url(#gazeArrowGrad)"
+            stroke="url(#cvp-gazeArrowGrad)"
             strokeWidth="2.5"
-            markerEnd="url(#gazeArrowHead)"
+            markerEnd="url(#cvp-gazeArrowHead)"
             opacity="0.85"
           />
 
@@ -392,12 +392,10 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
           </g>
 
           {/* ===== NOISE TEXTURE OVERLAY ===== */}
-          <rect x="0" y="0" width="800" height="500" filter="url(#noiseFilter)" opacity="0.3" fill="transparent" />
+          <rect x="0" y="0" width="800" height="500" filter="url(#cvp-noiseFilter)" opacity="0.3" fill="transparent" />
 
           {/* ===== SCANLINE OVERLAY ===== */}
-          <rect x="0" y="0" width="800" height="500" fill="url(#scanlines)" opacity="0.6">
-            <animate attributeName="y" from="0" to="4" dur="0.15s" repeatCount="indefinite" />
-          </rect>
+          <rect x="0" y="0" width="800" height="500" fill="url(#cvp-scanlines)" opacity="0.6" />
         </svg>
       </div>
 

@@ -1,0 +1,32 @@
+{
+  "id": "FEAT-003",
+  "type": "fix",
+  "description": "Address code review issues: remove unused CSS, fix scanline animation, revert getStateOverlayLabel to plain string, prefix SVG ids to avoid collision.",
+  "status": "in_progress",
+  "steps": [
+    "Remove unused CSS from src/index.css: animate-subtle-glow, animate-panel-glow, glass-panel, @keyframes eye-pulse",
+    "Remove <animate> child from scanline rect in CenterVideoPanel.tsx (make it static)",
+    "Revert getStateOverlayLabel to return plain string instead of { label, level } object",
+    "Prefix all SVG ids in CenterVideoPanel.tsx with 'cvp-' and update all url(#...) references",
+    "Prefix all SVG ids in RightHeadPanel.tsx with 'rhp-' and update all url(#...) references"
+  ],
+  "acceptance_criteria": [
+    "No animate-subtle-glow, animate-panel-glow, glass-panel, or @keyframes eye-pulse in index.css",
+    "No <animate> element inside the scanline rect in CenterVideoPanel",
+    "getStateOverlayLabel returns a plain string, not an object",
+    "All SVG ids in CenterVideoPanel.tsx start with 'cvp-'",
+    "All SVG ids in RightHeadPanel.tsx start with 'rhp-'",
+    "All url(#...) and filter url(#...) references match the prefixed ids",
+    "Valid TypeScript/TSX syntax"
+  ],
+  "verification": [
+    "Grep for animate-subtle-glow, animate-panel-glow, glass-panel, eye-pulse in index.css - none should exist",
+    "Grep for '<animate' in CenterVideoPanel scanline section - should not exist",
+    "Verify getStateOverlayLabel returns string type",
+    "Verify all ids in CenterVideoPanel start with cvp-",
+    "Verify all ids in RightHeadPanel start with rhp-",
+    "Run node syntax check on modified files"
+  ],
+  "blocked_reason": null,
+  "findings": null
+}

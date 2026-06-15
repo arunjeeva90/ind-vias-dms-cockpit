@@ -57,41 +57,6 @@ body {
   animation: scanline 4s linear infinite;
 }
 
-/* Subtle glow for progress bars */
-@keyframes subtle-glow {
-  0%, 100% {
-    opacity: 0.7;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-.animate-subtle-glow {
-  animation: subtle-glow 3s ease-in-out infinite;
-}
-
-/* Panel border glow for active panels */
-@keyframes panel-border-glow {
-  0%, 100% {
-    box-shadow: 0 0 8px rgba(0, 212, 255, 0.1), inset 0 0 4px rgba(0, 212, 255, 0.02);
-  }
-  50% {
-    box-shadow: 0 0 16px rgba(0, 212, 255, 0.2), inset 0 0 8px rgba(0, 212, 255, 0.05);
-  }
-}
-
-.animate-panel-glow {
-  animation: panel-border-glow 4s ease-in-out infinite;
-}
-
-/* Glass morphism utility */
-.glass-panel {
-  background: rgba(19, 26, 43, 0.8);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
 /* Section header styling */
 .section-header {
   display: flex;
@@ -105,16 +70,4 @@ body {
   flex: 1;
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.2), transparent);
-}
-
-/* Eye pulse for 3D head panel */
-@keyframes eye-pulse {
-  0%, 100% {
-    opacity: 0.6;
-    r: 4;
-  }
-  50% {
-    opacity: 1;
-    r: 5;
-  }
 }

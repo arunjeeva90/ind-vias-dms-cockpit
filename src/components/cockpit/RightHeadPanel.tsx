@@ -79,19 +79,19 @@ export const RightHeadPanel: React.FC<RightHeadPanelProps> = ({ data }) => {
             <svg viewBox="0 0 200 200" className="w-full h-full">
               <defs>
                 {/* Left eye radial gradient */}
-                <radialGradient id="leftEyeGlow" cx="50%" cy="50%" r="50%">
+                <radialGradient id="rhp-leftEyeGlow" cx="50%" cy="50%" r="50%">
                   <stop offset="0%" stopColor="#00d4ff" stopOpacity="1" />
                   <stop offset="60%" stopColor="#00d4ff" stopOpacity="0.6" />
                   <stop offset="100%" stopColor="#00d4ff" stopOpacity="0" />
                 </radialGradient>
                 {/* Right eye radial gradient */}
-                <radialGradient id="rightEyeGlow" cx="50%" cy="50%" r="50%">
+                <radialGradient id="rhp-rightEyeGlow" cx="50%" cy="50%" r="50%">
                   <stop offset="0%" stopColor="#00d4ff" stopOpacity="1" />
                   <stop offset="60%" stopColor="#00d4ff" stopOpacity="0.6" />
                   <stop offset="100%" stopColor="#00d4ff" stopOpacity="0" />
                 </radialGradient>
                 {/* Gaze cone gradient */}
-                <linearGradient id="gazeConeGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+                <linearGradient id="rhp-gazeConeGradient" x1="0%" y1="100%" x2="0%" y2="0%">
                   <stop offset="0%" stopColor={gazeOnRoad ? '#00e676' : '#ff6b35'} stopOpacity="0.7" />
                   <stop offset="100%" stopColor={gazeOnRoad ? '#00e676' : '#ff6b35'} stopOpacity="0.05" />
                 </linearGradient>
@@ -160,12 +160,12 @@ export const RightHeadPanel: React.FC<RightHeadPanelProps> = ({ data }) => {
               <ellipse cx="122" cy="78" rx="14" ry="8" fill="none" stroke="#00d4ff" strokeWidth="1" opacity="0.5" />
 
               {/* Left eye glow point - larger pulsing */}
-              <circle cx="78" cy="78" r="5" fill="url(#leftEyeGlow)" opacity="0.8">
+              <circle cx="78" cy="78" r="5" fill="url(#rhp-leftEyeGlow)" opacity="0.8">
                 <animate attributeName="r" values="4;5;4" dur="2s" repeatCount="indefinite" />
                 <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite" />
               </circle>
               {/* Right eye glow point - larger pulsing */}
-              <circle cx="122" cy="78" r="5" fill="url(#rightEyeGlow)" opacity="0.8">
+              <circle cx="122" cy="78" r="5" fill="url(#rhp-rightEyeGlow)" opacity="0.8">
                 <animate attributeName="r" values="4;5;4" dur="2s" repeatCount="indefinite" />
                 <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite" />
               </circle>
@@ -186,7 +186,7 @@ export const RightHeadPanel: React.FC<RightHeadPanelProps> = ({ data }) => {
               {/* Wider cone: spread +-20px at the tip */}
               <polygon
                 points={`100,78 ${100 + gazeX - 20},${78 + gazeY - 50} ${100 + gazeX + 20},${78 + gazeY - 50}`}
-                fill="url(#gazeConeGradient)"
+                fill="url(#rhp-gazeConeGradient)"
                 opacity="0.4"
               />
               {/* Center gaze line - more prominent */}
