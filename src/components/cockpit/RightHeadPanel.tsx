@@ -262,8 +262,12 @@ export const RightHeadPanel: React.FC<RightHeadPanelProps> = ({ data }) => {
         <span className={gazeOnRoad ? 'text-dms-success' : 'text-dms-warning'}>
           {gazeOnRoad ? 'Gaze: Road Center' : 'Gaze: Off Road'}
         </span>
-        <span className="text-dms-success">Head Pose Valid</span>
-        <span className="text-slate-400">Tracking Locked</span>
+        <span className={data.confidence.faceDetected ? 'text-dms-success' : 'text-dms-danger'}>
+          {data.confidence.faceDetected ? 'Head Pose Valid' : 'Head Pose Lost'}
+        </span>
+        <span className={data.confidence.faceDetected ? 'text-dms-success' : 'text-dms-danger'}>
+          {data.confidence.faceDetected ? 'Tracking Locked' : 'Tracking Lost'}
+        </span>
         <span className="text-slate-400">
           Eye L: {eyesOpen ? 'OPEN' : 'CLOSED'} | Eye R: {eyesOpen ? 'OPEN' : 'CLOSED'}
         </span>

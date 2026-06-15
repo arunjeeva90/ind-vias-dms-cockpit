@@ -120,9 +120,15 @@ export const BottomTimeline: React.FC<BottomTimelineProps> = ({ data }) => {
   const alertsRef = useRef<AlertMarker[]>([]);
   const stateHistoryRef = useRef<StateHistoryEntry[]>([]);
   const counterRef = useRef(0);
+  const prevTimestampRef = useRef<number>(0);
 
-  // Update rolling buffer - only when telemetry data changes
+  // Update rolling buffer - only when telemetry data actually changes
   useEffect(() => {
+    if (data.timestamp === prevTimestampRef.current) {
+      return;
+    }
+    prevTimestampRef.current = data.timestamp;
+
     const point: TimelineDataPoint = {
       t: counterRef.current++,
       eyesOffRoad: data.distraction.gazeOffRoad ? data.distraction.duration_ms / 5000 : 0,

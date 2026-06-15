@@ -307,7 +307,7 @@ export const LeftConsole: React.FC<LeftConsoleProps> = ({ data }) => {
       </div>
 
       {/* OUTPUT CONTRACT Section */}
-      <SectionHeader label="OUTPUT CONTRACT" />
+      <SectionHeader label="OUTPUT CONTRACT (raw thresholds)" />
       <div className="space-y-1 bg-slate-900/30 rounded p-2">
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${drowsinessOut.color}`} />

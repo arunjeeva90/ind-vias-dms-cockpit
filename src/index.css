@@ -7,18 +7,6 @@ body {
   position: relative;
 }
 
-/* Circuit-trace background pattern */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cpath d='M20 0v40h60v20h-40v40h100v-60h20v80h-60v40h20v-20h60v-40h-20v-20h20v-60h-40v20h-20v-20z' fill='none' stroke='%232d1b69' stroke-width='0.5'/%3E%3Ccircle cx='20' cy='40' r='2' fill='%234a1080'/%3E%3Ccircle cx='80' cy='60' r='2' fill='%234a1080'/%3E%3Ccircle cx='140' cy='100' r='2' fill='%234a1080'/%3E%3Ccircle cx='100' cy='140' r='2' fill='%234a1080'/%3E%3Ccircle cx='180' cy='60' r='2' fill='%234a1080'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-}
-
 /* Custom scrollbar hiding */
 .scrollbar-hide {
   -ms-overflow-style: none;
