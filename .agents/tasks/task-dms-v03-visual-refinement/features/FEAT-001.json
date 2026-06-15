@@ -1,0 +1,38 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Major visual upgrade of CenterVideoPanel.tsx to create a rich, realistic simulated DMS camera view of an Indian right-hand-drive car cabin. Replace the current basic SVG with a detailed scene including filled shapes, gradients, shadows, realistic driver silhouette with human proportions (head/neck/shoulders/torso), seatbelt line, steering wheel, seat cushions, headrests, dashboard, windshield top, rear-view mirror, passenger seat, and partially visible rear seats. Add precision face bounding box, 68-point-style facial landmarks, gaze arrow, RGB head-pose axis, and professional overlay labels.",
+  "status": "in_progress",
+  "steps": [
+    "Rewrite the SVG cabin scene in src/components/cockpit/CenterVideoPanel.tsx with a rich in-cabin view as seen from a top-center rear-view-mirror-mounted IR camera in a RIGHT-HAND-DRIVE Indian car. The driver appears on the LEFT side of the frame (right-hand drive means steering is on the right side of the car, but from the camera's POV mounted on the rear-view mirror looking back at the cabin, the driver is on the LEFT). Use filled shapes with subtle dark gradients (not just outlines), add shadows via SVG filters (feDropShadow, feGaussianBlur). Include: windshield top region (dark gradient), rear-view mirror housing at top, dashboard/instrument cluster, steering wheel on driver's side, driver seat with cushion and headrest (filled with dark gradients), passenger seat (slightly less visible), center console with gear lever area, rear seats partially visible at bottom. Use colors consistent with IR camera feel: dark blues, teals, subtle cyans.",
+    "Create a detailed driver silhouette on the LEFT side: oval head with neck, broad shoulders, upper torso, arms reaching toward steering wheel. Add a seatbelt diagonal line across chest. Make the silhouette use semi-transparent filled shapes with subtle inner glow, not just outline strokes. The driver should look like a human sitting in a car, not a stick figure.",
+    "Position the face bounding box tightly around just the driver's head/face area (not the full body). Add corner bracket accents. Make the box respond to headPose yaw/pitch with small positional offsets. Add a subtle cyan glow/shadow around the bounding box.",
+    "Add facial landmark points: at least 12 dots positioned around the face area representing eyes (4 points each for eye corners and lids), nose tip, nose bridge, mouth corners, chin. Use small circles with glow effects. Color: green for eye landmarks, cyan for nose/mouth.",
+    "Add a gaze direction arrow from the eye region toward the windshield direction. The arrow angle should respond to data.gaze.x and data.gaze.y. Use a gradient stroke that fades. Add arrowhead marker.",
+    "Add a small RGB head-pose coordinate axis indicator near the face bounding box. X-axis (yaw) in red, Y-axis (pitch) in green, Z-axis (roll) in blue. Axis lengths should respond to actual head pose values.",
+    "Add professional overlay labels positioned around the video: 'Driver D1' (top-right), 'Gaze: Front Windshield' or appropriate label (top-right, below Driver D1), 'State: Normal/Monitor/Warning' (top-right), 'CAM-01 IR 940nm' with red recording dot (top-left), 'Illumination: Auto' (bottom-left), timestamp in HH:MM:SS format (bottom-left). All labels should have semi-transparent dark backgrounds with rounded corners.",
+    "Add a subtle animated scanline effect over the video panel to simulate a real camera feed. Add a very faint noise/grain texture using SVG filter (feTurbulence). Add a soft cyan glow border around the entire panel using box-shadow."
+  ],
+  "acceptance_criteria": [
+    "CenterVideoPanel.tsx renders a visually rich cabin scene that is clearly recognizable as an Indian RHD car interior from a DMS camera angle",
+    "Driver silhouette has human proportions with head, neck, shoulders, torso, and seatbelt",
+    "Face bounding box is tightly sized around the face only, with corner accents and glow",
+    "At least 12 facial landmark dots are visible with appropriate glow effects",
+    "Gaze arrow responds to telemetry data.gaze values",
+    "RGB head-pose axis visible and responds to telemetry headPose values",
+    "All 6 overlay labels are present: Driver D1, Gaze label, State label, CAM-01 IR 940nm, Illumination: Auto, Timestamp",
+    "The component accepts DMSTelemetry data prop and uses it correctly",
+    "No new package dependencies introduced",
+    "Valid TypeScript/TSX syntax"
+  ],
+  "verification": [
+    "Read the final CenterVideoPanel.tsx and verify it contains SVG elements with fill attributes (not just stroke), gradient definitions, and shadow filters",
+    "Verify the component interface still accepts { data: DMSTelemetry } props",
+    "Verify all overlay labels are present in the JSX",
+    "Verify facial landmarks (at least 12 dot elements)",
+    "Verify gaze arrow uses data.gaze.x and data.gaze.y",
+    "Verify head pose axis uses data.headPose.yaw, pitch, roll"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

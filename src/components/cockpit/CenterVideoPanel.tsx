@@ -13,20 +13,20 @@ function getGazeLabel(data: DMSTelemetry): string {
   return 'Off Road';
 }
 
-function getStateOverlayLabel(state: DriverState): string {
+function getStateOverlayLabel(state: DriverState): { label: string; level: string } {
   switch (state) {
     case DriverState.ATTENTIVE:
-      return 'Normal';
+      return { label: 'Normal', level: 'normal' };
     case DriverState.DROWSY:
-      return 'Monitor';
+      return { label: 'Monitor', level: 'monitor' };
     case DriverState.DISTRACTED:
-      return 'Warning';
+      return { label: 'Warning', level: 'warning' };
     case DriverState.FATIGUED:
-      return 'Danger';
+      return { label: 'Danger', level: 'danger' };
     case DriverState.PHONE_USE:
-      return 'Alert';
+      return { label: 'Alert', level: 'warning' };
     default:
-      return 'Unknown';
+      return { label: 'Unknown', level: 'normal' };
   }
 }
 
@@ -37,178 +37,410 @@ function getCurrentTime(): string {
 
 export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
   const gazeLabel = getGazeLabel(data);
-  const stateLabel = getStateOverlayLabel(data.driverState);
+  const { label: stateLabel } = getStateOverlayLabel(data.driverState);
 
   // Head pose affects bounding box position slightly
   const boxOffsetX = data.headPose.yaw * 0.3;
   const boxOffsetY = data.headPose.pitch * 0.3;
 
   // Gaze arrow direction
-  const gazeAngleX = (data.gaze.x - 0.5) * 60;
-  const gazeAngleY = (data.gaze.y - 0.5) * 40;
+  const gazeAngleX = (data.gaze.x - 0.5) * 80;
+  const gazeAngleY = (data.gaze.y - 0.5) * -50;
+
+  // Face bounding box center (driver on LEFT side of frame in RHD camera view)
+  const faceCx = 220 + boxOffsetX;
+  const faceCy = 190 + boxOffsetY;
+  const faceW = 80;
+  const faceH = 95;
 
   return (
-    <div className="relative bg-dms-panel rounded-lg border border-dms-accent/20 shadow-[0_0_8px_rgba(0,212,255,0.1)] overflow-hidden h-full flex flex-col">
-      {/* Camera View Label */}
+    <div className="relative bg-dms-panel rounded-lg border border-dms-accent/30 shadow-[0_0_12px_rgba(0,212,255,0.15),inset_0_0_4px_rgba(0,212,255,0.05)] overflow-hidden h-full flex flex-col">
+      {/* Main Video Area - Simulated cabin view */}
+      <div className="flex-1 relative min-h-0">
+        <svg
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 800 500"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          {/* ===== DEFS: Gradients, Filters, Markers ===== */}
+          <defs>
+            {/* Background gradient */}
+            <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#060a12" />
+              <stop offset="40%" stopColor="#0a1020" />
+              <stop offset="100%" stopColor="#050810" />
+            </linearGradient>
+
+            {/* Windshield gradient */}
+            <linearGradient id="windshieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#0a1525" />
+              <stop offset="100%" stopColor="#060d18" stopOpacity="0.3" />
+            </linearGradient>
+
+            {/* Seat gradient - driver */}
+            <linearGradient id="driverSeatGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#1a2845" />
+              <stop offset="50%" stopColor="#12203a" />
+              <stop offset="100%" stopColor="#0d1828" />
+            </linearGradient>
+
+            {/* Seat gradient - passenger (dimmer) */}
+            <linearGradient id="passengerSeatGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#121d35" />
+              <stop offset="50%" stopColor="#0d1628" />
+              <stop offset="100%" stopColor="#081020" />
+            </linearGradient>
+
+            {/* Headrest gradient */}
+            <linearGradient id="headrestGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#1e2d4a" />
+              <stop offset="100%" stopColor="#0f1a2f" />
+            </linearGradient>
+
+            {/* Dashboard gradient */}
+            <linearGradient id="dashGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#0a0e17" />
+              <stop offset="100%" stopColor="#0d1420" />
+            </linearGradient>
+
+            {/* Center console gradient */}
+            <linearGradient id="consoleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#0f1825" />
+              <stop offset="100%" stopColor="#080d18" />
+            </linearGradient>
+
+            {/* Steering wheel gradient */}
+            <radialGradient id="steeringGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#1a2845" />
+              <stop offset="100%" stopColor="#0d1828" />
+            </radialGradient>
+
+            {/* Driver silhouette body gradient */}
+            <linearGradient id="driverBodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#1a2d4a" stopOpacity="0.9" />
+              <stop offset="100%" stopColor="#0f1828" stopOpacity="0.85" />
+            </linearGradient>
+
+            {/* Driver head gradient */}
+            <radialGradient id="driverHeadGrad" cx="50%" cy="40%" r="55%">
+              <stop offset="0%" stopColor="#1e3050" stopOpacity="0.95" />
+              <stop offset="70%" stopColor="#152540" stopOpacity="0.9" />
+              <stop offset="100%" stopColor="#0d1828" stopOpacity="0.85" />
+            </radialGradient>
+
+            {/* Gaze arrow gradient */}
+            <linearGradient id="gazeArrowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#00d4ff" stopOpacity="0.9" />
+              <stop offset="100%" stopColor="#00d4ff" stopOpacity="0.1" />
+            </linearGradient>
+
+            {/* Seatbelt gradient */}
+            <linearGradient id="seatbeltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#3a4a60" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#2a3a50" stopOpacity="0.6" />
+            </linearGradient>
+
+            {/* IR glow for face area */}
+            <radialGradient id="faceIRGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#00d4ff" stopOpacity="0.05" />
+              <stop offset="100%" stopColor="#00d4ff" stopOpacity="0" />
+            </radialGradient>
+
+            {/* Rear seats gradient */}
+            <linearGradient id="rearSeatGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#0a1220" />
+              <stop offset="100%" stopColor="#060a14" />
+            </linearGradient>
+
+            {/* Shadow filter */}
+            <filter id="shadowFilter" x="-10%" y="-10%" width="120%" height="120%">
+              <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000000" floodOpacity="0.5" />
+            </filter>
+
+            {/* Soft glow filter */}
+            <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+
+            {/* Cyan glow for bounding box */}
+            <filter id="cyanGlow" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+              <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 0.8 0.8 0 0  0 0.8 1 0 0  0 0 0 0.6 0" result="colored" />
+              <feMerge>
+                <feMergeNode in="colored" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+
+            {/* Green glow for eye landmarks */}
+            <filter id="greenGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+              <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 0 0 0 0.9  0 0 0 0 0.47  0 0 0 0.7 0" result="colored" />
+              <feMerge>
+                <feMergeNode in="colored" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+
+            {/* Cyan glow for nose/mouth landmarks */}
+            <filter id="cyanDotGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur" />
+              <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 0 0 0 0.83  0 0 0 0 1  0 0 0 0.6 0" result="colored" />
+              <feMerge>
+                <feMergeNode in="colored" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+
+            {/* Noise texture filter */}
+            <filter id="noiseFilter" x="0%" y="0%" width="100%" height="100%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="4" seed="5" result="noise" />
+              <feColorMatrix in="noise" type="saturate" values="0" result="grayNoise" />
+              <feBlend in="SourceGraphic" in2="grayNoise" mode="overlay" result="noisy" />
+              <feComponentTransfer in="noisy">
+                <feFuncA type="linear" slope="0.04" />
+              </feComponentTransfer>
+            </filter>
+
+            {/* Scanline pattern */}
+            <pattern id="scanlines" patternUnits="userSpaceOnUse" width="800" height="4">
+              <rect width="800" height="1" fill="#000000" opacity="0.08" />
+              <rect y="2" width="800" height="1" fill="#ffffff" opacity="0.02" />
+            </pattern>
+
+            {/* Gaze arrowhead marker */}
+            <marker id="gazeArrowHead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0,0 8,3 0,6" fill="#00d4ff" opacity="0.8" />
+            </marker>
+          </defs>
+
+          {/* ===== BACKGROUND ===== */}
+          <rect x="0" y="0" width="800" height="500" fill="url(#bgGrad)" />
+
+          {/* ===== WINDSHIELD TOP REGION ===== */}
+          <rect x="0" y="0" width="800" height="80" fill="url(#windshieldGrad)" />
+          <rect x="60" y="5" width="680" height="65" rx="3" fill="#0d1822" opacity="0.5" />
+          {/* Windshield frame line */}
+          <line x1="40" y1="75" x2="760" y2="75" stroke="#1a2840" strokeWidth="2" />
+
+          {/* ===== REAR-VIEW MIRROR HOUSING ===== */}
+          <path d="M 355,5 L 355,45 Q 355,52 362,52 L 438,52 Q 445,52 445,45 L 445,5 Z" fill="#0d1420" stroke="#1a2535" strokeWidth="1.5" filter="url(#shadowFilter)" />
+          <rect x="365" y="12" width="70" height="32" rx="3" fill="#0a1118" stroke="#162030" strokeWidth="0.8" />
+          {/* Mirror reflection hint */}
+          <rect x="368" y="15" width="64" height="26" rx="2" fill="#080e18" opacity="0.7" />
+
+          {/* ===== DASHBOARD / INSTRUMENT CLUSTER ===== */}
+          <rect x="0" y="72" width="800" height="55" fill="url(#dashGrad)" filter="url(#shadowFilter)" />
+          {/* Instrument cluster behind steering (driver side - left) */}
+          <rect x="120" y="80" width="140" height="40" rx="6" fill="#080c14" stroke="#152030" strokeWidth="1" />
+          {/* Instrument gauges (subtle circles) */}
+          <circle cx="160" cy="100" r="12" fill="none" stroke="#1a2535" strokeWidth="0.8" />
+          <circle cx="195" cy="100" r="12" fill="none" stroke="#1a2535" strokeWidth="0.8" />
+          <circle cx="230" cy="100" r="8" fill="none" stroke="#1a2535" strokeWidth="0.6" />
+
+          {/* ===== STEERING WHEEL (driver side - LEFT from camera POV) ===== */}
+          <circle cx="220" cy="290" r="62" fill="none" stroke="#1e2d45" strokeWidth="8" filter="url(#shadowFilter)" />
+          <circle cx="220" cy="290" r="62" fill="none" stroke="#253855" strokeWidth="3" />
+          {/* Steering wheel inner hub */}
+          <circle cx="220" cy="290" r="18" fill="url(#steeringGrad)" stroke="#253855" strokeWidth="2" />
+          {/* Steering spokes */}
+          <line x1="220" y1="272" x2="220" y2="240" stroke="#1e2d45" strokeWidth="5" strokeLinecap="round" />
+          <line x1="200" y1="302" x2="170" y2="320" stroke="#1e2d45" strokeWidth="5" strokeLinecap="round" />
+          <line x1="240" y1="302" x2="270" y2="320" stroke="#1e2d45" strokeWidth="5" strokeLinecap="round" />
+
+          {/* ===== DRIVER SEAT (LEFT side - RHD) ===== */}
+          {/* Seat back */}
+          <path d="M 130,160 Q 130,140 150,135 L 290,135 Q 310,140 310,160 L 310,400 Q 310,420 290,420 L 150,420 Q 130,420 130,400 Z" fill="url(#driverSeatGrad)" stroke="#1e2d4a" strokeWidth="1.5" filter="url(#shadowFilter)" />
+          {/* Seat cushion bottom */}
+          <path d="M 135,380 Q 135,370 145,365 L 295,365 Q 305,370 305,380 L 305,440 Q 305,450 295,450 L 145,450 Q 135,450 135,440 Z" fill="#0f1a2d" stroke="#1a2540" strokeWidth="1" />
+          {/* Headrest */}
+          <rect x="170" y="120" width="100" height="45" rx="12" fill="url(#headrestGrad)" stroke="#253855" strokeWidth="1.5" filter="url(#shadowFilter)" />
+          {/* Headrest center depression */}
+          <ellipse cx="220" cy="140" rx="25" ry="12" fill="#0d1828" opacity="0.4" />
+
+          {/* ===== PASSENGER SEAT (RIGHT side - dimmer) ===== */}
+          {/* Seat back */}
+          <path d="M 500,165 Q 500,145 520,140 L 660,140 Q 680,145 680,165 L 680,400 Q 680,420 660,420 L 520,420 Q 500,420 500,400 Z" fill="url(#passengerSeatGrad)" stroke="#152235" strokeWidth="1" opacity="0.8" />
+          {/* Seat cushion */}
+          <path d="M 505,380 Q 505,370 515,365 L 665,365 Q 675,370 675,380 L 675,440 Q 675,450 665,450 L 515,450 Q 505,450 505,440 Z" fill="#0a1220" stroke="#12202f" strokeWidth="0.8" opacity="0.8" />
+          {/* Headrest */}
+          <rect x="545" y="125" width="90" height="42" rx="10" fill="#121d30" stroke="#1a2840" strokeWidth="1" opacity="0.75" />
+
+          {/* ===== CENTER CONSOLE ===== */}
+          <rect x="320" y="200" width="170" height="280" rx="6" fill="url(#consoleGrad)" stroke="#1a2535" strokeWidth="1" filter="url(#shadowFilter)" />
+          {/* Gear lever area */}
+          <rect x="370" y="310" width="70" height="55" rx="5" fill="#080d18" stroke="#12202f" strokeWidth="1" />
+          {/* Gear lever knob */}
+          <ellipse cx="405" cy="325" rx="10" ry="8" fill="#1a2540" stroke="#253550" strokeWidth="1" />
+          {/* Gear lever shaft */}
+          <line x1="405" y1="333" x2="405" y2="355" stroke="#1a2540" strokeWidth="3" strokeLinecap="round" />
+          {/* Cup holders hint */}
+          <circle cx="380" cy="395" r="14" fill="#060a12" stroke="#0f1820" strokeWidth="0.8" />
+          <circle cx="430" cy="395" r="14" fill="#060a12" stroke="#0f1820" strokeWidth="0.8" />
+          {/* Center console trim */}
+          <line x1="330" y1="280" x2="480" y2="280" stroke="#1a2535" strokeWidth="0.5" opacity="0.5" />
+
+          {/* ===== REAR SEATS (partially visible at bottom) ===== */}
+          <rect x="60" y="455" width="680" height="50" rx="5" fill="url(#rearSeatGrad)" stroke="#0f1825" strokeWidth="1" />
+          <line x1="280" y1="455" x2="280" y2="500" stroke="#0a1018" strokeWidth="1" opacity="0.5" />
+          <line x1="520" y1="455" x2="520" y2="500" stroke="#0a1018" strokeWidth="1" opacity="0.5" />
+
+          {/* ===== DRIVER SILHOUETTE ===== */}
+          {/* Upper torso and shoulders */}
+          <path d="M 150,250 Q 160,230 185,225 L 255,225 Q 280,230 290,250 L 295,360 L 145,360 Z" fill="url(#driverBodyGrad)" stroke="#253855" strokeWidth="1" opacity="0.9" />
+
+          {/* Neck */}
+          <path d="M 200,185 Q 200,200 195,215 L 195,225 L 245,225 L 245,215 Q 240,200 240,185" fill="url(#driverBodyGrad)" stroke="#253855" strokeWidth="0.8" opacity="0.85" />
+
+          {/* Head (oval, human-like) */}
+          <ellipse cx={faceCx} cy={faceCy} rx="38" ry="48" fill="url(#driverHeadGrad)" stroke="#253855" strokeWidth="1.2" />
+          {/* Hair/top of head darker region */}
+          <ellipse cx={faceCx} cy={faceCy - 25} rx="32" ry="25" fill="#0d1828" opacity="0.5" />
+
+          {/* IR glow on face */}
+          <ellipse cx={faceCx} cy={faceCy} rx="50" ry="60" fill="url(#faceIRGlow)" />
+
+          {/* Left arm reaching to steering wheel */}
+          <path d="M 265,260 Q 275,280 270,310 Q 265,330 250,340" fill="none" stroke="#1a2d4a" strokeWidth="8" strokeLinecap="round" opacity="0.8" />
+          {/* Right arm */}
+          <path d="M 150,260 Q 140,280 145,300 Q 148,320 155,335" fill="none" stroke="#1a2d4a" strokeWidth="8" strokeLinecap="round" opacity="0.7" />
+
+          {/* Seatbelt diagonal across chest */}
+          <line x1="270" y1="155" x2="175" y2="360" stroke="url(#seatbeltGrad)" strokeWidth="5" strokeLinecap="round" />
+          {/* Seatbelt buckle hint */}
+          <rect x="178" y="345" width="12" height="18" rx="2" fill="#2a3a55" stroke="#3a4a65" strokeWidth="0.8" />
+
+          {/* ===== FACE BOUNDING BOX ===== */}
+          <g filter="url(#cyanGlow)">
+            {/* Main box */}
+            <rect
+              x={faceCx - faceW / 2}
+              y={faceCy - faceH / 2}
+              width={faceW}
+              height={faceH}
+              fill="none"
+              stroke="#00d4ff"
+              strokeWidth="1.5"
+              opacity="0.9"
+            />
+            {/* Corner accents - top left */}
+            <path d={`M ${faceCx - faceW / 2} ${faceCy - faceH / 2 + 12} L ${faceCx - faceW / 2} ${faceCy - faceH / 2} L ${faceCx - faceW / 2 + 12} ${faceCy - faceH / 2}`} fill="none" stroke="#00d4ff" strokeWidth="2.5" />
+            {/* Corner accents - top right */}
+            <path d={`M ${faceCx + faceW / 2 - 12} ${faceCy - faceH / 2} L ${faceCx + faceW / 2} ${faceCy - faceH / 2} L ${faceCx + faceW / 2} ${faceCy - faceH / 2 + 12}`} fill="none" stroke="#00d4ff" strokeWidth="2.5" />
+            {/* Corner accents - bottom left */}
+            <path d={`M ${faceCx - faceW / 2} ${faceCy + faceH / 2 - 12} L ${faceCx - faceW / 2} ${faceCy + faceH / 2} L ${faceCx - faceW / 2 + 12} ${faceCy + faceH / 2}`} fill="none" stroke="#00d4ff" strokeWidth="2.5" />
+            {/* Corner accents - bottom right */}
+            <path d={`M ${faceCx + faceW / 2 - 12} ${faceCy + faceH / 2} L ${faceCx + faceW / 2} ${faceCy + faceH / 2} L ${faceCx + faceW / 2} ${faceCy + faceH / 2 - 12}`} fill="none" stroke="#00d4ff" strokeWidth="2.5" />
+          </g>
+
+          {/* ===== FACIAL LANDMARKS (12+ dots) ===== */}
+          {/* Left eye - 4 points (inner corner, outer corner, upper lid, lower lid) */}
+          <g filter="url(#greenGlow)">
+            <circle cx={faceCx - 14} cy={faceCy - 8} r="2.2" fill="#00e676" /> {/* Left eye inner corner */}
+            <circle cx={faceCx - 24} cy={faceCy - 8} r="2.2" fill="#00e676" /> {/* Left eye outer corner */}
+            <circle cx={faceCx - 19} cy={faceCy - 12} r="1.8" fill="#00e676" /> {/* Left eye upper lid */}
+            <circle cx={faceCx - 19} cy={faceCy - 5} r="1.8" fill="#00e676" /> {/* Left eye lower lid */}
+          </g>
+          {/* Right eye - 4 points */}
+          <g filter="url(#greenGlow)">
+            <circle cx={faceCx + 14} cy={faceCy - 8} r="2.2" fill="#00e676" /> {/* Right eye inner corner */}
+            <circle cx={faceCx + 24} cy={faceCy - 8} r="2.2" fill="#00e676" /> {/* Right eye outer corner */}
+            <circle cx={faceCx + 19} cy={faceCy - 12} r="1.8" fill="#00e676" /> {/* Right eye upper lid */}
+            <circle cx={faceCx + 19} cy={faceCy - 5} r="1.8" fill="#00e676" /> {/* Right eye lower lid */}
+          </g>
+          {/* Nose bridge */}
+          <g filter="url(#cyanDotGlow)">
+            <circle cx={faceCx} cy={faceCy - 2} r="1.8" fill="#00d4ff" /> {/* Nose bridge */}
+            <circle cx={faceCx} cy={faceCy + 10} r="2.2" fill="#00d4ff" /> {/* Nose tip */}
+          </g>
+          {/* Mouth corners and chin */}
+          <g filter="url(#cyanDotGlow)">
+            <circle cx={faceCx - 12} cy={faceCy + 22} r="1.8" fill="#00d4ff" /> {/* Left mouth corner */}
+            <circle cx={faceCx + 12} cy={faceCy + 22} r="1.8" fill="#00d4ff" /> {/* Right mouth corner */}
+            <circle cx={faceCx} cy={faceCy + 38} r="1.8" fill="#00d4ff" /> {/* Chin */}
+          </g>
+
+          {/* ===== GAZE DIRECTION ARROW ===== */}
+          <line
+            x1={faceCx}
+            y1={faceCy - 10}
+            x2={faceCx + gazeAngleX}
+            y2={faceCy - 10 + gazeAngleY}
+            stroke="url(#gazeArrowGrad)"
+            strokeWidth="2.5"
+            markerEnd="url(#gazeArrowHead)"
+            opacity="0.85"
+          />
+
+          {/* ===== RGB HEAD POSE AXIS ===== */}
+          <g transform={`translate(${faceCx - 55}, ${faceCy + 55})`}>
+            {/* X axis - Yaw (Red) */}
+            <line x1="0" y1="0" x2={data.headPose.yaw * 0.5} y2="0" stroke="#ff4444" strokeWidth="2.5" strokeLinecap="round" />
+            <text x={data.headPose.yaw * 0.5 + (data.headPose.yaw >= 0 ? 4 : -10)} y="4" fill="#ff4444" fontSize="8" fontFamily="monospace">X</text>
+            {/* Y axis - Pitch (Green) */}
+            <line x1="0" y1="0" x2="0" y2={-data.headPose.pitch * 0.5} stroke="#44ff44" strokeWidth="2.5" strokeLinecap="round" />
+            <text x="3" y={-data.headPose.pitch * 0.5 + (data.headPose.pitch >= 0 ? -4 : 10)} fill="#44ff44" fontSize="8" fontFamily="monospace">Y</text>
+            {/* Z axis - Roll (Blue) */}
+            <line x1="0" y1="0" x2={data.headPose.roll * 0.35} y2={data.headPose.roll * 0.35} stroke="#4488ff" strokeWidth="2.5" strokeLinecap="round" />
+            <text x={data.headPose.roll * 0.35 + (data.headPose.roll >= 0 ? 4 : -10)} y={data.headPose.roll * 0.35 + 4} fill="#4488ff" fontSize="8" fontFamily="monospace">Z</text>
+            {/* Origin dot */}
+            <circle cx="0" cy="0" r="2" fill="#ffffff" opacity="0.6" />
+          </g>
+
+          {/* ===== NOISE TEXTURE OVERLAY ===== */}
+          <rect x="0" y="0" width="800" height="500" filter="url(#noiseFilter)" opacity="0.3" fill="transparent" />
+
+          {/* ===== SCANLINE OVERLAY ===== */}
+          <rect x="0" y="0" width="800" height="500" fill="url(#scanlines)" opacity="0.6">
+            <animate attributeName="y" from="0" to="4" dur="0.15s" repeatCount="indefinite" />
+          </rect>
+        </svg>
+      </div>
+
+      {/* ===== OVERLAY LABELS ===== */}
+      {/* Top-left: Recording indicator + camera label */}
       <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5">
-        <div className="w-2 h-2 rounded-full bg-dms-danger animate-pulse" />
-        <span className="text-[10px] font-mono text-slate-300 bg-black/50 px-1.5 py-0.5 rounded">
+        <div className="w-2 h-2 rounded-full bg-dms-danger animate-pulse shadow-[0_0_4px_rgba(255,45,85,0.6)]" />
+        <span className="text-[10px] font-mono text-slate-300 bg-black/60 px-1.5 py-0.5 rounded backdrop-blur-sm">
           CAM-01 IR 940nm
         </span>
       </div>
 
-      {/* Main Video Area - Simulated cabin view */}
-      <div className="flex-1 relative bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 min-h-0">
-        {/* Cabin interior simulation - RHD (driver on LEFT from camera view) */}
-        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet">
-          {/* Dashboard/windshield top */}
-          <rect x="0" y="0" width="800" height="60" fill="#0a0e17" opacity="0.6" />
-          
-          {/* Rear-view mirror at top center */}
-          <rect x="360" y="10" width="80" height="35" rx="4" fill="#1a2035" stroke="#2a3550" strokeWidth="1" />
-          
-          {/* Windshield visible through top */}
-          <rect x="50" y="0" width="700" height="80" fill="#0f1520" opacity="0.4" />
-
-          {/* Left seat area (DRIVER in RHD) */}
-          <path d="M 80,200 Q 80,150 120,130 L 250,130 Q 290,150 290,200 L 290,420 L 80,420 Z" 
-                fill="#151f35" stroke="#1f2f4a" strokeWidth="1.5" />
-          {/* Headrest */}
-          <rect x="130" y="110" width="80" height="40" rx="8" fill="#1a2540" stroke="#253555" strokeWidth="1" />
-          
-          {/* Steering wheel (right side of driver, left side of frame for RHD) */}
-          <circle cx="310" cy="320" r="55" fill="none" stroke="#2a3a55" strokeWidth="4" />
-          <circle cx="310" cy="320" r="20" fill="#1a2540" stroke="#2a3a55" strokeWidth="2" />
-
-          {/* Right seat area (PASSENGER) */}
-          <path d="M 510,200 Q 510,150 550,130 L 680,130 Q 720,150 720,200 L 720,420 L 510,420 Z"
-                fill="#121a2d" stroke="#1a2840" strokeWidth="1" />
-          {/* Headrest */}
-          <rect x="565" y="110" width="80" height="40" rx="8" fill="#151f35" stroke="#1f2f4a" strokeWidth="1" />
-
-          {/* Center console */}
-          <rect x="300" y="250" width="200" height="200" rx="4" fill="#0f1825" stroke="#1a2840" strokeWidth="1" />
-          {/* Gear area */}
-          <rect x="370" y="320" width="60" height="40" rx="4" fill="#0a1020" stroke="#1a2535" strokeWidth="1" />
-
-          {/* Rear seats (partially visible) */}
-          <rect x="100" y="440" width="600" height="60" rx="4" fill="#0d1525" stroke="#152035" strokeWidth="1" />
-
-          {/* Driver silhouette on LEFT */}
-          <ellipse cx="185" cy="200" rx="40" ry="50" fill="#1a2540" stroke="#253555" strokeWidth="1.5" />
-          {/* Shoulders */}
-          <path d="M 120,280 Q 185,250 250,280 L 250,350 L 120,350 Z" fill="#1a2540" stroke="#253555" strokeWidth="1" />
-        </svg>
-
-        {/* Face Bounding Box - Positioned over driver (left side) */}
-        <div
-          className="absolute border-2 border-dms-accent rounded-sm transition-all duration-200 shadow-[0_0_6px_rgba(0,212,255,0.3)]"
-          style={{
-            left: `${18 + boxOffsetX * 0.1}%`,
-            top: `${22 + boxOffsetY * 0.1}%`,
-            width: '14%',
-            height: '26%',
-          }}
-        >
-          {/* Corner accents */}
-          <div className="absolute -top-0.5 -left-0.5 w-3 h-3 border-t-2 border-l-2 border-dms-accent" />
-          <div className="absolute -top-0.5 -right-0.5 w-3 h-3 border-t-2 border-r-2 border-dms-accent" />
-          <div className="absolute -bottom-0.5 -left-0.5 w-3 h-3 border-b-2 border-l-2 border-dms-accent" />
-          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 border-b-2 border-r-2 border-dms-accent" />
-        </div>
-
-        {/* Facial Landmark Dots */}
-        <div className="absolute" style={{ left: `${20 + boxOffsetX * 0.1}%`, top: `${30 + boxOffsetY * 0.1}%` }}>
-          {/* Left eye */}
-          <div className="absolute w-1.5 h-1.5 rounded-full bg-dms-success shadow-[0_0_4px_rgba(0,230,118,0.6)]" style={{ left: '10px', top: '0px' }} />
-          {/* Right eye */}
-          <div className="absolute w-1.5 h-1.5 rounded-full bg-dms-success shadow-[0_0_4px_rgba(0,230,118,0.6)]" style={{ left: '40px', top: '0px' }} />
-          {/* Nose */}
-          <div className="absolute w-1.5 h-1.5 rounded-full bg-dms-accent shadow-[0_0_4px_rgba(0,212,255,0.6)]" style={{ left: '25px', top: '20px' }} />
-          {/* Mouth left */}
-          <div className="absolute w-1 h-1 rounded-full bg-dms-accent shadow-[0_0_3px_rgba(0,212,255,0.4)]" style={{ left: '14px', top: '35px' }} />
-          {/* Mouth right */}
-          <div className="absolute w-1 h-1 rounded-full bg-dms-accent shadow-[0_0_3px_rgba(0,212,255,0.4)]" style={{ left: '36px', top: '35px' }} />
-          {/* Mouth center */}
-          <div className="absolute w-1 h-1 rounded-full bg-dms-accent shadow-[0_0_3px_rgba(0,212,255,0.4)]" style={{ left: '25px', top: '37px' }} />
-        </div>
-
-        {/* Gaze Arrow */}
-        <div
-          className="absolute"
-          style={{
-            left: `${24 + boxOffsetX * 0.1}%`,
-            top: `${30 + boxOffsetY * 0.1}%`,
-          }}
-        >
-          <svg width="80" height="60" className="overflow-visible">
-            <defs>
-              <marker id="gazeArrowHead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                <polygon points="0,0 6,3 0,6" fill="#00d4ff" />
-              </marker>
-            </defs>
-            <line
-              x1="30"
-              y1="10"
-              x2={30 + gazeAngleX}
-              y2={10 + gazeAngleY}
-              stroke="#00d4ff"
-              strokeWidth="2"
-              opacity="0.8"
-              markerEnd="url(#gazeArrowHead)"
-            />
-          </svg>
-        </div>
-
-        {/* Head Pose Axes */}
-        <div
-          className="absolute"
-          style={{
-            left: `${15 + boxOffsetX * 0.1}%`,
-            top: `${47 + boxOffsetY * 0.1}%`,
-          }}
-        >
-          <svg width="40" height="40" className="overflow-visible">
-            {/* X axis - Red */}
-            <line x1="20" y1="20" x2={20 + data.headPose.yaw * 0.3} y2="20" stroke="#ff4444" strokeWidth="2" />
-            <text x={20 + data.headPose.yaw * 0.3 + 3} y="22" fill="#ff4444" fontSize="7">X</text>
-            {/* Y axis - Green */}
-            <line x1="20" y1="20" x2="20" y2={20 - data.headPose.pitch * 0.3} stroke="#44ff44" strokeWidth="2" />
-            <text x="22" y={20 - data.headPose.pitch * 0.3 - 3} fill="#44ff44" fontSize="7">Y</text>
-            {/* Z axis - Blue */}
-            <line x1="20" y1="20" x2={20 + data.headPose.roll * 0.2} y2={20 + data.headPose.roll * 0.2} stroke="#4488ff" strokeWidth="2" />
-            <text x={20 + data.headPose.roll * 0.2 + 3} y={20 + data.headPose.roll * 0.2 + 3} fill="#4488ff" fontSize="7">Z</text>
-          </svg>
-        </div>
-      </div>
-
-      {/* Overlay Labels */}
+      {/* Top-right: Driver info, Gaze, State */}
       <div className="absolute top-2 right-2 flex flex-col items-end gap-1 z-10">
-        <span className="text-[10px] font-mono text-dms-accent bg-black/60 px-1.5 py-0.5 rounded">
+        <span className="text-[10px] font-mono text-dms-accent bg-black/60 px-1.5 py-0.5 rounded backdrop-blur-sm">
           Driver D1
         </span>
-        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
+        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded backdrop-blur-sm ${
           data.gaze.onRoad ? 'text-dms-success bg-dms-success/10' : 'text-dms-warning bg-dms-warning/10'
         }`}>
           Gaze: {gazeLabel}
         </span>
-        <span className="text-[10px] font-mono text-slate-300 bg-black/60 px-1.5 py-0.5 rounded">
+        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded backdrop-blur-sm ${
+          stateLabel === 'Normal' ? 'text-dms-success bg-black/60' :
+          stateLabel === 'Monitor' ? 'text-dms-warning bg-black/60' :
+          'text-dms-danger bg-black/60'
+        }`}>
           State: {stateLabel}
         </span>
       </div>
 
-      {/* Bottom overlay labels */}
+      {/* Bottom-left: Timestamp and illumination */}
       <div className="absolute bottom-2 left-2 flex items-center gap-3 z-10">
-        <span className="text-[10px] font-mono text-slate-400 bg-black/60 px-1.5 py-0.5 rounded">
+        <span className="text-[10px] font-mono text-slate-400 bg-black/60 px-1.5 py-0.5 rounded backdrop-blur-sm">
           {getCurrentTime()}
         </span>
-        <span className="text-[10px] font-mono text-slate-400 bg-black/60 px-1.5 py-0.5 rounded">
+        <span className="text-[10px] font-mono text-slate-400 bg-black/60 px-1.5 py-0.5 rounded backdrop-blur-sm">
           Illumination: Auto
         </span>
       </div>
 
       {/* Confidence bar at very bottom */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-900">
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-900/80">
         <div
           className="h-full bg-dms-accent/60 transition-all duration-300"
           style={{ width: `${data.confidence.overall * 100}%` }}
