@@ -1,0 +1,36 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Complete rebuild of RightHeadPanel.tsx with a production-grade face mesh visualization using layered contour rings and isoparametric curves approach (topographic contour lines on a face shape) rather than filled triangles. This creates a technical/engineering look while appearing clearly human and volumetric.",
+  "status": "in_progress",
+  "steps": [
+    "Completely rewrite src/components/cockpit/RightHeadPanel.tsx with a new visual approach: Use SVG with layered concentric contour rings that follow the shape of a human face (like topographic elevation maps). The approach should be: (A) Define a set of contour paths at different 'depth levels' - front face center has tightest contours, edges have wider spacing. (B) Include distinct regions: forehead (horizontal curves), eye sockets (elliptical depressions), nose (central ridge with nostril contours), cheeks (smooth curved contours), jawline (outer boundary), chin, lips/mouth (small contour detail), neck, and subtle shoulder lines. (C) Use 5-7 concentric depth layers with decreasing opacity from center to edges. (D) Add a subtle triangulated wireframe OVERLAY (not as the primary visual) using thin lines connecting contour intersection points.",
+    "Implement proper 3D rotation: (A) Keep CSS perspective transform for the SVG container (perspective: 800px). (B) Apply rotateY(clampedYaw) rotateX(-clampedPitch) rotateZ(clampedRoll) with visual clamping at +-35 degrees. (C) Use smooth transitions (0.15s ease-out). (D) Set transform-origin to center. (E) Ensure the head is properly centered with adequate padding so no clipping occurs at any rotation angle.",
+    "Build the face mesh SVG with these visual layers (bottom to top): (1) Outermost face/head silhouette path as a subtle boundary. (2) Major contour rings (5-7 levels) using stroke-only paths with the dms-accent color (#00d4ff) at varying opacities (0.15 to 0.5 from outer to inner). (3) Feature-specific detail contours for eyes, nose, mouth, ears. (4) A very subtle fill gradient (radial, from center) to give depth perception. (5) Vertex/intersection dots at key landmarks (eyes, nose tip, chin) with subtle glow.",
+    "Implement the unified gaze cone visualization: (A) Use a cone from the midpoint between both eyes (cx=center, cy=eye_level). (B) The cone spreads outward in the gaze direction. (C) Color it green (#00e676) when onRoad, orange (#ff6b35) when off road. (D) Make it semi-transparent with gradient fade. (E) Add a thin center line within the cone for precision indication.",
+    "Add eye glow indicators: (A) Both eyes should have subtle pulsing glow circles. (B) Color them cyan/green when eyes are visible, dim when not. (C) Add a very subtle connecting bridge between eyes for the gaze origin point.",
+    "Keep the status info panel below the SVG showing: (A) Gaze: Road Center / Off Road status. (B) 0-axis calibrated label. (C) Road-facing neutral label. (D) Head Pose Valid / Lost. (E) Tracking Locked / Lost. (F) Eye openness L/R.",
+    "Keep the YAW/PITCH/ROLL numeric readout row at the bottom with the same font-mono styling.",
+    "Ensure the SVG viewBox and preserveAspectRatio are set so the face model is fully visible, centered, with no clipping. Use viewBox='0 0 200 280' or similar with xMidYMid meet. The model should use roughly 70-80% of the available space to leave padding for rotation.",
+    "The overall panel layout should remain: header row (title + gaze status badge), flex-1 SVG container, status info grid, YAW/PITCH/ROLL row. The panel border should glow cyan when onRoad, orange when off road."
+  ],
+  "acceptance_criteria": [
+    "RightHeadPanel.tsx renders a face visualization using layered contour lines/rings approach - no filled triangle polygon mesh as the primary visual",
+    "The face clearly reads as human with identifiable forehead, eyes, nose, mouth, jawline, and neck regions",
+    "The face is fully visible within the panel at all rotation angles up to +-35 degrees - no clipping",
+    "Head visually rotates in response to yaw/pitch/roll data with smooth CSS transitions",
+    "Gaze cone renders from midpoint between eyes, colored by onRoad status",
+    "Raw YAW/PITCH/ROLL numeric values are displayed",
+    "Panel border glows cyan for onRoad, orange for off road",
+    "No new npm dependencies used - pure SVG + CSS + React",
+    "No TypeScript errors (verified by code inspection)"
+  ],
+  "verification": [
+    "Read RightHeadPanel.tsx and verify it does not contain FACE_MESH_TRIANGLES array or filled polygon-based rendering",
+    "Verify the SVG contains path elements with contour/ring patterns rather than polygon elements",
+    "Verify the component accepts DMSTelemetry data prop and renders headPose.yaw/pitch/roll values",
+    "Grep for 'preserveAspectRatio' in RightHeadPanel.tsx to confirm proper SVG scaling"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
