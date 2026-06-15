@@ -8,7 +8,7 @@
   "verification_instructions": "1. Run `unset NODE_OPTIONS && npm run build` to verify production build succeeds. 2. Run `unset NODE_OPTIONS && npm test -- --run` to verify all tests pass. 3. Run `unset NODE_OPTIONS && npm run lint` to verify no lint errors.",
   "snapshot_or_generated_files": null,
   "setup_instructions": "1. cd /projects/sandbox/ind-vias-dms-cockpit. 2. unset NODE_OPTIONS. 3. npm install. 4. npm run dev (for development). 5. npm run build (for production).",
-  "environment_constraints": "Must run `unset NODE_OPTIONS` before any node/npm/npx commands due to a proxy-bootstrap.js issue in the sandbox. Node v22.22.3, npm 11.4.2 available.",
+  "environment_constraints": "INTEGRATIONS_ONLY network mode - npm install CANNOT run (proxy returns 403 for registry.npmjs.org). Must run `unset NODE_OPTIONS` before any node/npm/npx commands. Node v22.22.3, npm 11.4.2, TypeScript 6.0.3 globally available. Verification strategy: use standalone tsc type-checking on .ts files (not .tsx since React types are not installed). Validate project structure is correct and will build once cloned with network access.",
   "contribution_requirements": "Greenfield project - establishing conventions from scratch.",
   "key_patterns": "Tech stack: React 18 + TypeScript + Vite + Tailwind CSS + Recharts. Architecture: WebSocket telemetry service abstraction with dummy data generator. Component-based dashboard with real-time updates. Dark automotive theme with professional gauges and visualizations.",
   "relevant_files": [
