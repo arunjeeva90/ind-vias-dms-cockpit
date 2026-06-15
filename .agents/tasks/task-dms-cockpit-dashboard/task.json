@@ -1,0 +1,7 @@
+{
+  "task_id": "task-dms-cockpit-dashboard",
+  "task_description": "Build a professional automotive Driver Monitoring System dashboard (IND-VIAS DualSight DMS Cockpit) using React + TypeScript + Vite + Tailwind CSS. The dashboard visualizes driver state, head pose, gaze, drowsiness, distraction, seatbelt status, phone suspicion, DMS confidence, and ADAS fusion readiness. Runs in dummy telemetry mode with realistic simulated data, architected to later connect to a real WebSocket JSON telemetry source.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
+  "blocked_reason": null
+}

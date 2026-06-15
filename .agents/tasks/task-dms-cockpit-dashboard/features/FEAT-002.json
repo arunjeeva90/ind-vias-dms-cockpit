@@ -1,0 +1,39 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Implement the telemetry service layer with dummy data generation and WebSocket-ready architecture, create the useTelemetry hook, and build all dashboard UI components with real-time visualizations.",
+  "status": "pending",
+  "steps": [
+    "Create src/services/telemetry.ts - Define a TelemetryProvider interface with methods: connect(), disconnect(), onData(callback: (data: DMSTelemetry) => void), isConnected(): boolean. Export a factory function createTelemetryProvider(mode: 'dummy' | 'websocket', config?: { url?: string }) that returns the appropriate provider.",
+    "Create src/services/dummyTelemetry.ts - Implement DummyTelemetryProvider that generates realistic simulated DMS data at 10Hz (100ms intervals). The generator should produce smooth transitions between states (not random jumps), simulate realistic drowsiness buildup over time, occasional phone detection events, head pose that slowly drifts, gaze that tracks naturally. Use sine waves and perlin-like noise for smooth transitions. Include state machine logic: normal driving -> getting drowsy -> recovering, occasional phone checks, natural head movements.",
+    "Create src/services/websocketTelemetry.ts - Implement WebSocketTelemetryProvider that connects to a configurable WebSocket URL, parses incoming JSON as DMSTelemetry, handles reconnection with exponential backoff, and emits data through the same interface. This is the future real connection point.",
+    "Create src/hooks/useTelemetry.ts - Custom React hook that creates a telemetry provider (dummy mode by default), manages connection lifecycle with useEffect, stores latest DMSTelemetry in state, and returns { data: DMSTelemetry | null, connected: boolean, mode: string }. Update at animation frame rate for smooth UI.",
+    "Create src/components/Dashboard.tsx - Main dashboard layout component. Uses CSS grid for responsive layout. Contains a header bar with 'IND-VIAS DualSight DMS Cockpit' title, connection status indicator, and current driver state badge. Below: a grid of panel components. Uses useTelemetry hook to get data and passes to child components.",
+    "Create src/components/DriverStatePanel.tsx - Large central panel showing current driver state (attentive/drowsy/distracted/fatigued/phone_use) with color-coded background (green=attentive, yellow=drowsy, orange=distracted, red=fatigued/phone). Shows state icon using lucide-react icons and state duration.",
+    "Create src/components/HeadPoseGauge.tsx - 3-axis head pose visualization. Show yaw, pitch, roll as animated arc gauges (semi-circular). Use SVG arcs with the value indicated by a needle/marker. Range: -90 to +90 degrees. Color gradient from green (center) to yellow to red (extremes).",
+    "Create src/components/GazeVisualization.tsx - A 2D visualization showing gaze point on a stylized windshield/road view. Draw a rectangle representing the windshield, plot the gaze point as a pulsing dot. Show 'ON ROAD' / 'OFF ROAD' status with color indicator. Include a trailing path of recent gaze points (last 20).",
+    "Create src/components/DrowsinessIndicator.tsx - Panel showing PERCLOS percentage as a circular progress gauge, blink rate (blinks/min), blink duration (ms), yawn count, and overall drowsiness score (0-100) as a horizontal bar that changes color from green->yellow->orange->red as score increases.",
+    "Create src/components/DistractionIndicator.tsx - Distraction score as a radial gauge (0-100), gaze-off-road indicator (boolean light), and duration counter showing how long gaze has been off-road in milliseconds.",
+    "Create src/components/SeatbeltStatus.tsx - Visual seatbelt icon that is green when worn, red when not worn. Show confidence percentage. Animate state changes.",
+    "Create src/components/PhoneSuspicion.tsx - Phone detection panel with a phone icon, detected/not-detected status, confidence bar, and hand position text. Pulses red when phone detected.",
+    "Create src/components/DMSConfidence.tsx - Overall DMS system confidence meter (0-100%), face detected indicator, eyes visible indicator, image quality status (good/fair/poor with color coding).",
+    "Create src/components/ADASFusionReadiness.tsx - ADAS integration panel showing overall readiness status, individual system indicators (lane keep assist, collision warning, speed adaptation) as toggle lights, and integration score as a progress bar.",
+    "Update src/App.tsx to import and render Dashboard as the main content.",
+    "Ensure all components use the dark automotive theme colors from Tailwind config (dms-dark, dms-panel, dms-accent, etc.), have rounded corners, subtle borders (border-slate-700/50), and glow effects on active indicators.",
+    "Add basic responsive design - dashboard should work on 1080p+ screens with a grid that adapts."
+  ],
+  "acceptance_criteria": [
+    "Running `unset NODE_OPTIONS && npm run build` succeeds with no TypeScript errors",
+    "The dummy telemetry service generates realistic data that transitions smoothly",
+    "All dashboard components render without runtime errors",
+    "The WebSocket provider is implemented and ready for future real connections",
+    "The dashboard displays all required metrics: driver state, head pose, gaze, drowsiness, distraction, seatbelt, phone suspicion, DMS confidence, ADAS fusion readiness",
+    "The UI uses a dark automotive color theme and looks professional"
+  ],
+  "verification": [
+    "unset NODE_OPTIONS && cd /projects/sandbox/ind-vias-dms-cockpit && npm run build",
+    "unset NODE_OPTIONS && cd /projects/sandbox/ind-vias-dms-cockpit && npx tsc --noEmit"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
