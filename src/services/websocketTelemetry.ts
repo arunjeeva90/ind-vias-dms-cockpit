@@ -1,0 +1,99 @@
+import { DMSTelemetry } from '../types/dms';
+import { TelemetryProvider } from './telemetry';
+
+export class WebSocketTelemetryProvider implements TelemetryProvider {
+  private ws: WebSocket | null = null;
+  private callback: ((data: DMSTelemetry) => void) | null = null;
+  private connected = false;
+  private url: string;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 10;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private shouldReconnect = false;
+
+  constructor(url: string) {
+    this.url = url;
+  }
+
+  connect(): void {
+    this.shouldReconnect = true;
+    this.attemptConnection();
+  }
+
+  disconnect(): void {
+    this.shouldReconnect = false;
+    this.reconnectAttempts = 0;
+
+    if (this.reconnectTimer !== null) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+    }
+
+    this.connected = false;
+  }
+
+  onData(callback: (data: DMSTelemetry) => void): void {
+    this.callback = callback;
+  }
+
+  isConnected(): boolean {
+    return this.connected;
+  }
+
+  private attemptConnection(): void {
+    try {
+      this.ws = new WebSocket(this.url);
+
+      this.ws.onopen = () => {
+        this.connected = true;
+        this.reconnectAttempts = 0;
+      };
+
+      this.ws.onmessage = (event: MessageEvent) => {
+        try {
+          const data = JSON.parse(event.data as string) as DMSTelemetry;
+          if (this.callback) {
+            this.callback(data);
+          }
+        } catch {
+          console.warn('[DMS WebSocket] Failed to parse message:', event.data);
+        }
+      };
+
+      this.ws.onclose = () => {
+        this.connected = false;
+        this.ws = null;
+        this.scheduleReconnect();
+      };
+
+      this.ws.onerror = () => {
+        console.warn('[DMS WebSocket] Connection error');
+        // onclose will be called after onerror
+      };
+    } catch {
+      console.warn('[DMS WebSocket] Failed to create WebSocket');
+      this.scheduleReconnect();
+    }
+  }
+
+  private scheduleReconnect(): void {
+    if (!this.shouldReconnect) return;
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.warn('[DMS WebSocket] Max reconnection attempts reached');
+      return;
+    }
+
+    // Exponential backoff: 1s, 2s, 4s, 8s, ... up to 30s
+    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+    this.reconnectAttempts++;
+
+    this.reconnectTimer = setTimeout(() => {
+      this.attemptConnection();
+    }, delay);
+  }
+}
