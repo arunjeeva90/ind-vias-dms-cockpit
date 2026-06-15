@@ -1,5 +1,6 @@
 import React from 'react';
-import { DMSTelemetry, DriverState } from '../../types/dms';
+import { DMSTelemetry } from '../../types/dms';
+import { mapDriverState, getStateLabel, getStateColor } from '../../utils/driverStateMapping';
 
 interface CenterVideoPanelProps {
   data: DMSTelemetry;
@@ -13,23 +14,6 @@ function getGazeLabel(data: DMSTelemetry): string {
   return 'Off Road';
 }
 
-function getStateOverlayLabel(state: DriverState): string {
-  switch (state) {
-    case DriverState.ATTENTIVE:
-      return 'Normal';
-    case DriverState.DROWSY:
-      return 'Monitor';
-    case DriverState.DISTRACTED:
-      return 'Warning';
-    case DriverState.FATIGUED:
-      return 'Danger';
-    case DriverState.PHONE_USE:
-      return 'Alert';
-    default:
-      return 'Unknown';
-  }
-}
-
 function getCurrentTime(): string {
   const now = new Date();
   return now.toLocaleTimeString('en-IN', { hour12: false });
@@ -37,7 +21,9 @@ function getCurrentTime(): string {
 
 export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
   const gazeLabel = getGazeLabel(data);
-  const stateLabel = getStateOverlayLabel(data.driverState);
+  const overallState = mapDriverState(data.driverState, data.confidence.overall);
+  const stateLabel = getStateLabel(overallState);
+  const stateColorClass = getStateColor(overallState);
 
   // Head pose affects bounding box position slightly
   const boxOffsetX = data.headPose.yaw * 0.3;
@@ -487,11 +473,7 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
         }`}>
           Gaze: {gazeLabel}
         </span>
-        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded backdrop-blur-sm ${
-          stateLabel === 'Normal' ? 'text-dms-success bg-black/60' :
-          stateLabel === 'Monitor' ? 'text-dms-warning bg-black/60' :
-          'text-dms-danger bg-black/60'
-        }`}>
+        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded backdrop-blur-sm ${stateColorClass} bg-black/60`}>
           State: {stateLabel}
         </span>
       </div>

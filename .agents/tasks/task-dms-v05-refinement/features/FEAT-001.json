@@ -1,0 +1,31 @@
+{
+  "id": "FEAT-001",
+  "type": "fix",
+  "description": "Create a unified state mapping utility and fix all data consistency bugs across the dashboard. This eliminates state label mismatches (DROWSY vs MONITOR vs Monitor), camera health inconsistencies, and the critical ADAS Integration 7827% bug.",
+  "status": "in_progress",
+  "steps": [
+    "Create a new shared utility file at src/utils/driverStateMapping.ts that exports: (1) a unified mapDriverState function that maps DriverState enum + confidence to a consistent OverallState (NORMAL/MONITOR/WARNING/DANGER/DEGRADED), (2) getStateLabel(state: OverallState) returning the display label, (3) getStateColor(state: OverallState) returning tailwind color classes, (4) getStateBadgeStyles(state: OverallState) returning badge styling, (5) getCameraHealth(confidence: DMSConfidence) returning a unified camera health status that considers both faceDetected AND quality fields consistently",
+    "Update src/components/cockpit/StatusBar.tsx: Remove local getStateColor and getStateLabel functions. Import and use the unified mapping from src/utils/driverStateMapping.ts. The status bar should show the OverallState label (NORMAL/MONITOR/WARNING/DANGER/DEGRADED) instead of raw DriverState names. Update camera health to use the unified getCameraHealth function.",
+    "Update src/components/cockpit/LeftConsole.tsx: Remove local mapDriverState, getOverallStateStyles, and the related local functions. Import and use the unified mapping from src/utils/driverStateMapping.ts. Camera health should use getCameraHealth for consistency with StatusBar.",
+    "Update src/components/cockpit/CenterVideoPanel.tsx: Remove local getStateOverlayLabel function. Import and use the unified mapping. The state overlay should show the same OverallState label as StatusBar and LeftConsole.",
+    "Update src/components/cockpit/DecisionCard.tsx: (A) Fix the critical ADAS Integration bug on the line that reads `{(data.adasFusion.integrationScore * 100).toFixed(0)}%` - change it to `{data.adasFusion.integrationScore.toFixed(0)}%` since integrationScore is already 0-100. (B) Update deriveDecision to use the unified state mapping for the stateLabel so it matches all other panels. The decision card state badge should show the same OverallState as everywhere else.",
+    "Update src/components/cockpit/BottomTimeline.tsx: Update getStateChipColor and getStateChipLabel to use the unified mapping utility for consistency.",
+    "Audit all percentage displays across all components: ensure confidence.overall (0-1) is properly multiplied by 100, drowsiness.score (0-100) is NOT multiplied by 100, distraction.score (0-100) is NOT multiplied by 100, integrationScore (0-100) is NOT multiplied by 100, perclos (0-100 already) is displayed correctly."
+  ],
+  "acceptance_criteria": [
+    "All 6 cockpit components use the same unified state mapping - no local duplicate state mapping functions remain",
+    "StatusBar, LeftConsole, CenterVideoPanel, DecisionCard, and BottomTimeline all show the same state label for the same DriverState + confidence input",
+    "Camera health is derived consistently from the same logic across StatusBar and LeftConsole",
+    "ADAS Integration percentage never exceeds 100% - the * 100 multiplication is removed from DecisionCard.tsx",
+    "No TypeScript type errors in the new utility or updated components (verified by code inspection)",
+    "confidence.overall (0-1) is multiplied by 100 for display, integrationScore (0-100) is NOT multiplied"
+  ],
+  "verification": [
+    "Grep for 'integrationScore * 100' across all files - should return zero results",
+    "Grep for 'getStateLabel\\|getStateColor\\|getStateOverlayLabel\\|mapDriverState' in cockpit components - should only find imports from the shared utility, not local definitions",
+    "Verify src/utils/driverStateMapping.ts exists and exports the unified functions",
+    "Check that all cockpit components import from src/utils/driverStateMapping.ts"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

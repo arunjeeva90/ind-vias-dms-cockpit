@@ -1,6 +1,7 @@
 import React from 'react';
 import { Activity, Camera, Radio, Wifi, WifiOff, MonitorDot } from 'lucide-react';
-import { DriverState, DMSTelemetry } from '../../types/dms';
+import { DMSTelemetry } from '../../types/dms';
+import { mapDriverState, getStateLabel, getStateColor, getCameraHealth, getCameraHealthColor } from '../../utils/driverStateMapping';
 
 interface StatusBarProps {
   data: DMSTelemetry | null;
@@ -8,43 +9,10 @@ interface StatusBarProps {
   mode: string;
 }
 
-function getStateColor(state?: DriverState): string {
-  switch (state) {
-    case DriverState.ATTENTIVE:
-      return 'text-dms-success';
-    case DriverState.DROWSY:
-      return 'text-yellow-400';
-    case DriverState.DISTRACTED:
-      return 'text-dms-warning';
-    case DriverState.FATIGUED:
-      return 'text-dms-danger';
-    case DriverState.PHONE_USE:
-      return 'text-dms-danger';
-    default:
-      return 'text-slate-400';
-  }
-}
-
-function getStateLabel(state?: DriverState): string {
-  switch (state) {
-    case DriverState.ATTENTIVE:
-      return 'ATTENTIVE';
-    case DriverState.DROWSY:
-      return 'DROWSY';
-    case DriverState.DISTRACTED:
-      return 'DISTRACTED';
-    case DriverState.FATIGUED:
-      return 'FATIGUED';
-    case DriverState.PHONE_USE:
-      return 'PHONE USE';
-    default:
-      return 'N/A';
-  }
-}
-
 export const StatusBar: React.FC<StatusBarProps> = ({ data, connected, mode }) => {
   const fps = data ? 30 : 0; // Nominal target frame rate
-  const cameraHealth = data?.confidence.faceDetected ? 'OK' : 'NO FACE';
+  const overallState = data ? mapDriverState(data.driverState, data.confidence.overall) : undefined;
+  const cameraHealth = data ? getCameraHealth(data.confidence) : 'NO FACE';
   const tracking = data?.confidence.faceDetected ? 'LOCKED' : 'LOST';
 
   return (
@@ -84,8 +52,8 @@ export const StatusBar: React.FC<StatusBarProps> = ({ data, connected, mode }) =
       {/* Driver State */}
       <div className="flex items-center gap-2">
         <span className="text-[10px] text-slate-500 uppercase">State</span>
-        <span className={`text-xs font-bold uppercase ${getStateColor(data?.driverState)}`}>
-          {getStateLabel(data?.driverState)}
+        <span className={`text-xs font-bold uppercase ${overallState ? getStateColor(overallState) : 'text-slate-400'}`}>
+          {overallState ? getStateLabel(overallState) : 'N/A'}
         </span>
       </div>
 
@@ -100,7 +68,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ data, connected, mode }) =
       <div className="flex items-center gap-1.5">
         <Camera className="w-3.5 h-3.5 text-slate-400" />
         <span className="text-[10px] text-slate-500">Camera</span>
-        <span className={`text-xs font-mono ${data?.confidence.faceDetected ? 'text-dms-success' : 'text-dms-warning'}`}>
+        <span className={`text-xs font-mono ${getCameraHealthColor(cameraHealth)}`}>
           {cameraHealth}
         </span>
       </div>

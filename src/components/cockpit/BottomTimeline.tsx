@@ -6,6 +6,7 @@ import {
   YAxis,
 } from 'recharts';
 import { DMSTelemetry, DriverState } from '../../types/dms';
+import { mapDriverState, getStateLabel, getStateBgColor } from '../../utils/driverStateMapping';
 
 interface BottomTimelineProps {
   data: DMSTelemetry;
@@ -26,42 +27,8 @@ const MAX_POINTS = 60;
 // State history entry
 interface StateHistoryEntry {
   state: DriverState;
+  confidence: number;
   time: number;
-}
-
-// State color and label mappings
-function getStateChipColor(state: DriverState): string {
-  switch (state) {
-    case DriverState.ATTENTIVE:
-      return 'bg-dms-success';
-    case DriverState.DROWSY:
-      return 'bg-cyan-400';
-    case DriverState.DISTRACTED:
-      return 'bg-amber-400';
-    case DriverState.FATIGUED:
-      return 'bg-dms-danger';
-    case DriverState.PHONE_USE:
-      return 'bg-fuchsia-500';
-    default:
-      return 'bg-slate-500';
-  }
-}
-
-function getStateChipLabel(state: DriverState): string {
-  switch (state) {
-    case DriverState.ATTENTIVE:
-      return 'ATT';
-    case DriverState.DROWSY:
-      return 'DRW';
-    case DriverState.DISTRACTED:
-      return 'DST';
-    case DriverState.FATIGUED:
-      return 'FTG';
-    case DriverState.PHONE_USE:
-      return 'PHN';
-    default:
-      return 'UNK';
-  }
 }
 
 // Mini sparkline chart component
@@ -146,7 +113,7 @@ export const BottomTimeline: React.FC<BottomTimelineProps> = ({ data }) => {
     if (!lastState || lastState.state !== data.driverState) {
       stateHistoryRef.current = [
         ...stateHistoryRef.current,
-        { state: data.driverState, time: counterRef.current },
+        { state: data.driverState, confidence: data.confidence.overall, time: counterRef.current },
       ].slice(-10);
     }
 
@@ -171,14 +138,17 @@ export const BottomTimeline: React.FC<BottomTimelineProps> = ({ data }) => {
       <div className="flex items-center gap-1 mb-1.5 px-1">
         <span className="text-[7px] text-slate-500 uppercase shrink-0 mr-1">State History</span>
         <div className="flex items-center gap-0.5 flex-wrap">
-          {stateHistory.map((entry) => (
-            <span
-              key={entry.time}
-              className={`px-1.5 py-0.5 rounded text-[7px] font-bold text-white ${getStateChipColor(entry.state)}`}
-            >
-              {getStateChipLabel(entry.state)}
-            </span>
-          ))}
+          {stateHistory.map((entry) => {
+            const overallState = mapDriverState(entry.state, entry.confidence);
+            return (
+              <span
+                key={entry.time}
+                className={`px-1.5 py-0.5 rounded text-[7px] font-bold text-white ${getStateBgColor(overallState)}`}
+              >
+                {getStateLabel(overallState)}
+              </span>
+            );
+          })}
           {stateHistory.length === 0 && (
             <span className="text-[8px] text-slate-600 italic">No transitions</span>
           )}

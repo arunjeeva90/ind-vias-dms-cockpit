@@ -11,47 +11,17 @@ import {
   AlertCircle,
   ChevronDown,
 } from 'lucide-react';
-import { DriverState, DMSTelemetry } from '../../types/dms';
+import { DMSTelemetry } from '../../types/dms';
+import {
+  mapDriverState,
+  getStateBadgeStyles,
+  getCameraHealth,
+  getCameraHealthColor,
+  OverallState,
+} from '../../utils/driverStateMapping';
 
 interface LeftConsoleProps {
   data: DMSTelemetry;
-}
-
-type OverallState = 'NORMAL' | 'MONITOR' | 'WARNING' | 'DANGER' | 'DEGRADED';
-
-function mapDriverState(state: DriverState, confidence: number): OverallState {
-  if (confidence < 0.3) return 'DEGRADED';
-  switch (state) {
-    case DriverState.ATTENTIVE:
-      return 'NORMAL';
-    case DriverState.DROWSY:
-      return 'MONITOR';
-    case DriverState.DISTRACTED:
-      return 'WARNING';
-    case DriverState.FATIGUED:
-      return 'DANGER';
-    case DriverState.PHONE_USE:
-      return 'DANGER';
-    default:
-      return 'NORMAL';
-  }
-}
-
-function getOverallStateStyles(state: OverallState): string {
-  switch (state) {
-    case 'NORMAL':
-      return 'bg-dms-success/20 text-dms-success border-dms-success/50';
-    case 'MONITOR':
-      return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50';
-    case 'WARNING':
-      return 'bg-dms-warning/20 text-dms-warning border-dms-warning/50';
-    case 'DANGER':
-      return 'bg-dms-danger/20 text-dms-danger border-dms-danger/50';
-    case 'DEGRADED':
-      return 'bg-slate-700/30 text-slate-400 border-slate-600/50';
-    default:
-      return 'bg-slate-700/20 text-slate-400 border-slate-700/50';
-  }
 }
 
 interface SectionHeaderProps {
@@ -157,7 +127,7 @@ function deriveConfidenceState(overall: number): { label: string; color: string 
 export const LeftConsole: React.FC<LeftConsoleProps> = ({ data }) => {
   const overallState = mapDriverState(data.driverState, data.confidence.overall);
   const faceTracking = data.confidence.faceDetected ? 'LOCKED' : 'LOST';
-  const cameraHealth = data.confidence.quality === 'good' || data.confidence.quality === 'excellent' ? 'OK' : 'DEGRADED';
+  const cameraHealth = getCameraHealth(data.confidence);
 
   // Derive attention score: inverse of distraction (distraction.score is 0-100)
   const attention = 1 - data.distraction.score / 100;
@@ -193,7 +163,7 @@ export const LeftConsole: React.FC<LeftConsoleProps> = ({ data }) => {
         </div>
         <div className="flex items-center justify-between">
           <span className="text-[10px] text-slate-500 uppercase tracking-wider">Camera Health</span>
-          <span className={`text-xs font-mono font-bold ${cameraHealth === 'OK' ? 'text-dms-success' : 'text-amber-400'}`}>
+          <span className={`text-xs font-mono font-bold ${getCameraHealthColor(cameraHealth)}`}>
             {cameraHealth}
           </span>
         </div>
@@ -205,7 +175,7 @@ export const LeftConsole: React.FC<LeftConsoleProps> = ({ data }) => {
 
       {/* STATE Section */}
       <SectionHeader label="STATE" />
-      <div className={`text-center py-2 rounded-md border font-bold text-base tracking-wider ${getOverallStateStyles(overallState)} ${overallState !== 'NORMAL' ? 'animate-pulse-border' : ''}`}>
+      <div className={`text-center py-2 rounded-md border font-bold text-base tracking-wider ${getStateBadgeStyles(overallState)} ${overallState !== 'NORMAL' ? 'animate-pulse-border' : ''}`}>
         {overallState}
       </div>
 

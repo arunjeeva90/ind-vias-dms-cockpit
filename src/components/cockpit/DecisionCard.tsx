@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertTriangle, Shield, Zap } from 'lucide-react';
 import { DriverState, DMSTelemetry } from '../../types/dms';
+import { mapDriverState, getStateLabel, getStateBadgeStyles } from '../../utils/driverStateMapping';
 
 interface DecisionCardProps {
   data: DMSTelemetry;
@@ -8,7 +9,7 @@ interface DecisionCardProps {
 
 interface DecisionInfo {
   stateLabel: string;
-  stateBadgeColor: string;
+  stateBadgeStyles: string;
   primaryCause: string;
   secondaryCause: string;
   hmiAction: string;
@@ -16,11 +17,15 @@ interface DecisionInfo {
 }
 
 function deriveDecision(data: DMSTelemetry): DecisionInfo {
+  const overallState = mapDriverState(data.driverState, data.confidence.overall);
+  const label = getStateLabel(overallState);
+  const badgeStyles = getStateBadgeStyles(overallState);
+
   switch (data.driverState) {
     case DriverState.DROWSY:
       return {
-        stateLabel: 'DROWSY',
-        stateBadgeColor: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40',
+        stateLabel: label,
+        stateBadgeStyles: badgeStyles,
         primaryCause: `High PERCLOS (${data.drowsiness.perclos.toFixed(0)}%)`,
         secondaryCause: `Blink rate: ${data.drowsiness.blinkRate.toFixed(0)} bpm`,
         hmiAction: 'Audio warning + seat vibration',
@@ -28,8 +33,8 @@ function deriveDecision(data: DMSTelemetry): DecisionInfo {
       };
     case DriverState.DISTRACTED:
       return {
-        stateLabel: 'DISTRACTED',
-        stateBadgeColor: 'bg-dms-warning/20 text-dms-warning border-dms-warning/40',
+        stateLabel: label,
+        stateBadgeStyles: badgeStyles,
         primaryCause: `Gaze off road (${(data.distraction.duration_ms / 1000).toFixed(1)}s)`,
         secondaryCause: `Distraction score: ${data.distraction.score.toFixed(0)}%`,
         hmiAction: 'Visual HUD alert',
@@ -37,8 +42,8 @@ function deriveDecision(data: DMSTelemetry): DecisionInfo {
       };
     case DriverState.FATIGUED:
       return {
-        stateLabel: 'FATIGUED',
-        stateBadgeColor: 'bg-dms-danger/20 text-dms-danger border-dms-danger/40',
+        stateLabel: label,
+        stateBadgeStyles: badgeStyles,
         primaryCause: `Fatigue score critical`,
         secondaryCause: `Yawn count: ${data.drowsiness.yawnCount}`,
         hmiAction: 'Haptic alert + rest stop suggestion',
@@ -46,8 +51,8 @@ function deriveDecision(data: DMSTelemetry): DecisionInfo {
       };
     case DriverState.PHONE_USE:
       return {
-        stateLabel: 'PHONE USE',
-        stateBadgeColor: 'bg-dms-danger/20 text-dms-danger border-dms-danger/40',
+        stateLabel: label,
+        stateBadgeStyles: badgeStyles,
         primaryCause: `Phone detected (${data.phoneSuspicion.confidence.toFixed(0)}%)`,
         secondaryCause: `Hand: ${data.phoneSuspicion.handPosition}`,
         hmiAction: 'Audio warning + ADAS takeover prep',
@@ -55,8 +60,8 @@ function deriveDecision(data: DMSTelemetry): DecisionInfo {
       };
     default:
       return {
-        stateLabel: 'NORMAL',
-        stateBadgeColor: 'bg-dms-success/20 text-dms-success border-dms-success/40',
+        stateLabel: label,
+        stateBadgeStyles: badgeStyles,
         primaryCause: 'All metrics nominal',
         secondaryCause: 'Attention sustained',
         hmiAction: 'No action required',
@@ -85,7 +90,7 @@ export const DecisionCard: React.FC<DecisionCardProps> = ({ data }) => {
       </div>
 
       {/* State Badge */}
-      <div className={`text-xs font-bold px-2 py-1 rounded border text-center ${decision.stateBadgeColor}`}>
+      <div className={`text-xs font-bold px-2 py-1 rounded border text-center ${decision.stateBadgeStyles}`}>
         {decision.stateLabel}
       </div>
 
@@ -121,7 +126,7 @@ export const DecisionCard: React.FC<DecisionCardProps> = ({ data }) => {
       <div className="flex items-center justify-between">
         <span className="text-[10px] text-slate-400">ADAS Integration</span>
         <span className="text-[10px] font-mono text-dms-accent">
-          {(data.adasFusion.integrationScore * 100).toFixed(0)}%
+          {data.adasFusion.integrationScore.toFixed(0)}%
         </span>
       </div>
 
