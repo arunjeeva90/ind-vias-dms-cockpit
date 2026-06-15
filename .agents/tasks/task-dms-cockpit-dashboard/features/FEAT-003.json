@@ -1,0 +1,29 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Add unit tests for the telemetry services and key components, add lint configuration, and ensure the full project passes build, lint, and test verification.",
+  "status": "pending",
+  "steps": [
+    "Create vitest.config.ts (or add vitest config in vite.config.ts) with jsdom environment, setup files for @testing-library/jest-dom, and coverage configuration.",
+    "Create src/tests/setup.ts with import '@testing-library/jest-dom'.",
+    "Create src/services/__tests__/dummyTelemetry.test.ts - Test that the dummy provider: emits data through the callback, generates data matching the DMSTelemetry interface shape, produces values within expected ranges (scores 0-100, confidence 0-1, angles -90 to 90), can be connected and disconnected cleanly.",
+    "Create src/components/__tests__/Dashboard.test.tsx - Test that Dashboard renders without crashing, displays the title, shows connection status.",
+    "Create src/components/__tests__/DriverStatePanel.test.tsx - Test that it renders the correct state text and applies appropriate color classes for each driver state.",
+    "Create .eslintrc.cjs with TypeScript and React hooks rules configured.",
+    "Add lint script to package.json: eslint src --ext .ts,.tsx",
+    "Run full verification: npm run build && npm test -- --run && npm run lint"
+  ],
+  "acceptance_criteria": [
+    "Running `unset NODE_OPTIONS && npm test -- --run` passes all tests",
+    "Running `unset NODE_OPTIONS && npm run build` succeeds",
+    "Running `unset NODE_OPTIONS && npm run lint` passes with no errors (warnings acceptable)",
+    "Test coverage exists for telemetry service and at least 2 UI components"
+  ],
+  "verification": [
+    "unset NODE_OPTIONS && cd /projects/sandbox/ind-vias-dms-cockpit && npm run build",
+    "unset NODE_OPTIONS && cd /projects/sandbox/ind-vias-dms-cockpit && npm test -- --run",
+    "unset NODE_OPTIONS && cd /projects/sandbox/ind-vias-dms-cockpit && npm run lint"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

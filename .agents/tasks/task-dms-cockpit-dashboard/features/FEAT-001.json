@@ -1,0 +1,34 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Scaffold the complete React + TypeScript + Vite project with Tailwind CSS, set up the project structure, configure all tooling, and create the TypeScript type definitions for DMS telemetry data.",
+  "status": "blocked",
+  "steps": [
+    "Initialize the Vite + React + TypeScript project in /projects/sandbox/ind-vias-dms-cockpit. Run: `unset NODE_OPTIONS && npm create vite@latest . -- --template react-ts` (use --force or empty dir strategy since README exists). If the scaffolder fails due to existing files, manually create package.json with vite/react/react-dom/typescript deps.",
+    "Install core dependencies: react, react-dom, recharts, lucide-react (icons). Dev dependencies: tailwindcss, postcss, autoprefixer, @types/react, @types/react-dom, typescript, vite, @vitejs/plugin-react, vitest, @testing-library/react, @testing-library/jest-dom, jsdom, eslint, eslint-plugin-react-hooks, @typescript-eslint/eslint-plugin, @typescript-eslint/parser.",
+    "Configure Tailwind CSS: create tailwind.config.js with content paths pointing to ./index.html and ./src/**/*.{js,ts,jsx,tsx}. Add custom colors for automotive theme (dms-dark: #0a0e17, dms-panel: #131a2b, dms-accent: #00d4ff, dms-warning: #ff6b35, dms-danger: #ff2d55, dms-success: #00e676). Create postcss.config.js with tailwindcss and autoprefixer plugins.",
+    "Create src/index.css with Tailwind directives (@tailwind base; @tailwind components; @tailwind utilities;) and base body styles (bg-dms-dark, font-sans, text-white, min-h-screen).",
+    "Create vite.config.ts with React plugin and server config (port 3000).",
+    "Create tsconfig.json with strict mode, jsx react-jsx, module ESNext, moduleResolution bundler, paths alias @/* -> src/*.",
+    "Create src/types/dms.ts with comprehensive TypeScript interfaces: DMSTelemetry (top-level), DriverState (enum: attentive, drowsy, distracted, fatigued, phone_use), HeadPose (yaw, pitch, roll in degrees), GazeData (x, y normalized 0-1, onRoad boolean), DrowsinessMetrics (perclos, blinkRate, blinkDuration, yawnCount, score 0-100), DistractionMetrics (score 0-100, gazeOffRoad boolean, duration_ms), SeatbeltStatus (worn boolean, confidence 0-1), PhoneSuspicion (detected boolean, confidence 0-1, handPosition string), DMSConfidence (overall 0-1, faceDetected boolean, eyesVisible boolean, quality string), ADASFusion (ready boolean, laneKeepAssist boolean, collisionWarning boolean, speedAdaptation boolean, integrationScore 0-1).",
+    "Create src/main.tsx entry point importing React, ReactDOM, App, and index.css.",
+    "Create src/App.tsx as a minimal shell that renders a Dashboard component (placeholder for now - just renders a div with the app title).",
+    "Create index.html with proper meta tags, title 'IND-VIAS DualSight DMS Cockpit', and root div.",
+    "Add npm scripts in package.json: dev, build, preview, test, lint.",
+    "Verify the project builds with `unset NODE_OPTIONS && npm run build`."
+  ],
+  "acceptance_criteria": [
+    "Running `unset NODE_OPTIONS && npm install` completes without errors",
+    "Running `unset NODE_OPTIONS && npm run build` produces a dist/ folder successfully",
+    "TypeScript compilation passes with no type errors",
+    "src/types/dms.ts contains all DMS telemetry interfaces as described"
+  ],
+  "verification": [
+    "unset NODE_OPTIONS && cd /projects/sandbox/ind-vias-dms-cockpit && npm run build"
+  ],
+  "blocked_reason": {
+    "retryable": false,
+    "detail": "Cannot install npm packages. The proxy (squid/6.13 at BigWeaverExecEnvMgnt-ProxyLBV2) returns HTTP 403 Forbidden for all requests to registry.npmjs.org (both HTTP and HTTPS). Direct connections without proxy timeout. This is INTEGRATIONS_ONLY network mode - only git gateway connections are permitted. All project scaffold files have been created and are ready; npm install will succeed once network access to npmjs is available."
+  },
+  "findings": "All project scaffold files created successfully: package.json, tsconfig.json, tsconfig.node.json, vite.config.ts, tailwind.config.js, postcss.config.js, index.html, src/main.tsx, src/App.tsx, src/index.css, src/types/dms.ts, src/vite-env.d.ts, public/vite.svg. However, npm install cannot complete due to network restrictions - the sandbox proxy blocks all access to registry.npmjs.org with 403 Forbidden. TypeScript v6.0.3 is globally available. Node v22.22.3 and npm 11.4.2 are available but cannot reach package registries."
+}
