@@ -2,7 +2,7 @@
   "id": "FEAT-001",
   "type": "fix",
   "description": "Create a unified state mapping utility and fix all data consistency bugs across the dashboard. This eliminates state label mismatches (DROWSY vs MONITOR vs Monitor), camera health inconsistencies, and the critical ADAS Integration 7827% bug.",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "Create a new shared utility file at src/utils/driverStateMapping.ts that exports: (1) a unified mapDriverState function that maps DriverState enum + confidence to a consistent OverallState (NORMAL/MONITOR/WARNING/DANGER/DEGRADED), (2) getStateLabel(state: OverallState) returning the display label, (3) getStateColor(state: OverallState) returning tailwind color classes, (4) getStateBadgeStyles(state: OverallState) returning badge styling, (5) getCameraHealth(confidence: DMSConfidence) returning a unified camera health status that considers both faceDetected AND quality fields consistently",
     "Update src/components/cockpit/StatusBar.tsx: Remove local getStateColor and getStateLabel functions. Import and use the unified mapping from src/utils/driverStateMapping.ts. The status bar should show the OverallState label (NORMAL/MONITOR/WARNING/DANGER/DEGRADED) instead of raw DriverState names. Update camera health to use the unified getCameraHealth function.",
@@ -27,5 +27,5 @@
     "Check that all cockpit components import from src/utils/driverStateMapping.ts"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "All local state mapping functions removed from 5 cockpit components. Unified utility exports OverallState type for use by LeftConsole STATE_LADDER. Camera health now checks both faceDetected and quality consistently. ADAS integrationScore bug fixed (was showing 7827% due to extra *100). BottomTimeline StateHistoryEntry updated to store confidence alongside state for accurate mapping on replay. phoneSuspicion.confidence confirmed to be 0-100 range in dummy data, so /100 normalization in sparkline is correct."
 }
