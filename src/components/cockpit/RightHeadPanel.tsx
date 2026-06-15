@@ -194,8 +194,10 @@ export const RightHeadPanel: React.FC<RightHeadPanelProps> = ({ data }) => {
   const clampedRoll = clamp35(roll);
 
   // Gaze direction for cone visualization
-  const gazeX = (data.gaze.x - 0.5) * 70;
-  const gazeY = (data.gaze.y - 0.5) * 50;
+  // gazeX/gazeY represent the raw offset from center (0 = looking straight ahead)
+  // In SVG coordinates, Y-down means default forward gaze (0.5, 0.5) points upward (-Y)
+  const gazeOffsetX = (data.gaze.x - 0.5) * 70;
+  const gazeOffsetY = (data.gaze.y - 0.5) * 50;
 
   // Eye openness from confidence
   const eyesVisible = data.confidence.eyesVisible;
@@ -208,6 +210,37 @@ export const RightHeadPanel: React.FC<RightHeadPanelProps> = ({ data }) => {
   // Midpoint between both eyes for gaze cone origin
   const gazeMidX = (LANDMARKS.leftEye.cx + LANDMARKS.rightEye.cx) / 2;
   const gazeMidY = (LANDMARKS.leftEye.cy + LANDMARKS.rightEye.cy) / 2;
+
+  // Compute gaze cone direction vector with fixed length of 50 units.
+  // Default gaze (0.5, 0.5) means looking forward/at road, rendered as pointing up (-Y in SVG).
+  // Off-center gaze rotates the cone in that direction.
+  const coneLength = 50;
+  const coneHalfWidth = 18; // 36 units total width at tip
+  // Compute direction from an upward-biased reference point.
+  // gazeOffsetX ranges [-35, 35], gazeOffsetY ranges [-25, 25].
+  // forwardRef defines the upward bias: when gazeOffsetY < forwardRef, cone points up;
+  // when gazeOffsetY > forwardRef, cone tilts down. Using 20 ensures that
+  // moderate downward gaze (phone use at ~0.9) starts tilting the cone down.
+  const forwardRef = 20;
+  const dirX = gazeOffsetX;
+  const dirY = gazeOffsetY - forwardRef;
+  const dirMag = Math.sqrt(dirX * dirX + dirY * dirY);
+  // When direction magnitude is too small (near-degenerate), default to straight up
+  const effectiveDirX = dirMag > 1 ? dirX / dirMag : 0;
+  const effectiveDirY = dirMag > 1 ? dirY / dirMag : -1;
+  // Scale normalized direction to fixed cone length
+  const normDirX = effectiveDirX * coneLength;
+  const normDirY = effectiveDirY * coneLength;
+  // Perpendicular vector for cone spread (rotated 90 degrees from direction)
+  const perpX = -effectiveDirY * coneHalfWidth;
+  const perpY = effectiveDirX * coneHalfWidth;
+  // Cone tip endpoints (two corners of the triangle at the tip)
+  const coneTipCenterX = gazeMidX + normDirX;
+  const coneTipCenterY = gazeMidY + normDirY;
+  const coneTipLeftX = coneTipCenterX - perpX;
+  const coneTipLeftY = coneTipCenterY - perpY;
+  const coneTipRightX = coneTipCenterX + perpX;
+  const coneTipRightY = coneTipCenterY + perpY;
 
   const gazeColor = gazeOnRoad ? '#00e676' : '#ff6b35';
 
@@ -292,7 +325,7 @@ export const RightHeadPanel: React.FC<RightHeadPanelProps> = ({ data }) => {
                   <stop offset="100%" stopColor="#00d4ff" stopOpacity="0" />
                 </radialGradient>
                 {/* Gaze cone gradient */}
-                <linearGradient id="rhp-gazeConeGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+                <linearGradient id="rhp-gazeConeGrad" gradientUnits="userSpaceOnUse" x1={String(gazeMidX)} y1={String(gazeMidY)} x2={String(coneTipCenterX)} y2={String(coneTipCenterY)}>
                   <stop offset="0%" stopColor={gazeColor} stopOpacity="0.5" />
                   <stop offset="100%" stopColor={gazeColor} stopOpacity="0.02" />
                 </linearGradient>
@@ -399,7 +432,7 @@ export const RightHeadPanel: React.FC<RightHeadPanelProps> = ({ data }) => {
 
               {/* ===== UNIFIED GAZE CONE ===== */}
               <polygon
-                points={`${gazeMidX},${gazeMidY} ${gazeMidX + gazeX - 18},${gazeMidY + gazeY - 45} ${gazeMidX + gazeX + 18},${gazeMidY + gazeY - 45}`}
+                points={`${gazeMidX},${gazeMidY} ${coneTipLeftX},${coneTipLeftY} ${coneTipRightX},${coneTipRightY}`}
                 fill="url(#rhp-gazeConeGrad)"
                 opacity="0.4"
               />
@@ -407,8 +440,8 @@ export const RightHeadPanel: React.FC<RightHeadPanelProps> = ({ data }) => {
               <line
                 x1={gazeMidX}
                 y1={gazeMidY}
-                x2={gazeMidX + gazeX}
-                y2={gazeMidY + gazeY - 45}
+                x2={coneTipCenterX}
+                y2={coneTipCenterY}
                 stroke={gazeColor}
                 strokeWidth="1"
                 opacity="0.6"

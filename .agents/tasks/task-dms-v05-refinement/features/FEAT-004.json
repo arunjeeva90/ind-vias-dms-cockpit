@@ -1,0 +1,27 @@
+{
+  "id": "FEAT-004",
+  "type": "fix",
+  "description": "Fix the gaze cone direction bias in RightHeadPanel.tsx. The cone used a fixed -45 Y offset making it always point upward regardless of actual gaze direction. Replace with proper directional vector computation so the cone rotates to follow gaze.",
+  "status": "completed",
+  "steps": [
+    "Replace the fixed `gazeY - 45` offset in the gaze cone polygon with a proper directional vector computation that: (A) normalizes the gaze offset to a unit vector biased upward for default forward gaze, (B) scales to a fixed cone length of 50 units, (C) computes perpendicular spread vectors for the triangle width (36 units at tip), (D) handles the degenerate case when gaze offset equals the forward bias.",
+    "Update the gaze cone linearGradient to use gradientUnits=userSpaceOnUse with dynamic coordinates from the eye midpoint to the cone tip, ensuring the gradient fades correctly regardless of cone direction.",
+    "Verify that: default gaze (0.5, 0.5) points the cone straight up (forward/road), looking right tilts the cone right, looking far down (phone in lap) points the cone downward, and the cone spread remains 36 units wide at the tip."
+  ],
+  "acceptance_criteria": [
+    "Gaze cone points upward for default center gaze (0.5, 0.5)",
+    "Gaze cone rotates to point in the actual gaze direction for off-center values",
+    "Looking far down (gaze.y >= 0.95) results in cone pointing downward",
+    "Cone spread remains approximately 36 units wide at the tip",
+    "Cone length remains fixed at 50 units regardless of gaze direction",
+    "Gradient fades from bright at origin to dim at tip for any direction",
+    "No TypeScript errors (no unused variables, all types correct)"
+  ],
+  "verification": [
+    "Read RightHeadPanel.tsx and verify no fixed '-45' offset remains in the gaze cone polygon",
+    "Verify the polygon uses computed coneTipLeftX/Y and coneTipRightX/Y variables",
+    "Verify the linearGradient uses gradientUnits=userSpaceOnUse with dynamic coordinates"
+  ],
+  "blocked_reason": null,
+  "findings": "Fixed gaze cone direction. Used forwardRef=20 as the upward bias which means: center gaze (0.5,0.5) points straight up, looking right tilts cone right, looking far down (gaze.y > 0.9) begins tilting cone downward. The degenerate case (dirMag < 1) defaults safely to straight up. The linearGradient now uses gradientUnits=userSpaceOnUse so the fade always runs from the eye midpoint (bright) to the cone tip (dim) regardless of direction. No unused variables, all types correct."
+}
