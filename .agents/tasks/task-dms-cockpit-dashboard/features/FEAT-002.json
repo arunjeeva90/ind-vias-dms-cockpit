@@ -2,7 +2,7 @@
   "id": "FEAT-002",
   "type": "feat",
   "description": "Implement the telemetry service layer with dummy data generation and WebSocket-ready architecture, create the useTelemetry hook, and build all dashboard UI components with real-time visualizations.",
-  "status": "pending",
+  "status": "in_progress",
   "steps": [
     "Create src/services/telemetry.ts - Define a TelemetryProvider interface with methods: connect(), disconnect(), onData(callback: (data: DMSTelemetry) => void), isConnected(): boolean. Export a factory function createTelemetryProvider(mode: 'dummy' | 'websocket', config?: { url?: string }) that returns the appropriate provider.",
     "Create src/services/dummyTelemetry.ts - Implement DummyTelemetryProvider that generates realistic simulated DMS data at 10Hz (100ms intervals). The generator should produce smooth transitions between states (not random jumps), simulate realistic drowsiness buildup over time, occasional phone detection events, head pose that slowly drifts, gaze that tracks naturally. Use sine waves and perlin-like noise for smooth transitions. Include state machine logic: normal driving -> getting drowsy -> recovering, occasional phone checks, natural head movements.",
