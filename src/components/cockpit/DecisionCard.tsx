@@ -12,6 +12,7 @@ interface DecisionInfo {
   primaryCause: string;
   secondaryCause: string;
   hmiAction: string;
+  whyExplanation: string;
 }
 
 function deriveDecision(data: DMSTelemetry): DecisionInfo {
@@ -23,6 +24,7 @@ function deriveDecision(data: DMSTelemetry): DecisionInfo {
         primaryCause: `High PERCLOS (${data.drowsiness.perclos.toFixed(0)}%)`,
         secondaryCause: `Blink rate: ${data.drowsiness.blinkRate.toFixed(0)} bpm`,
         hmiAction: 'Audio warning + seat vibration',
+        whyExplanation: 'Early drowsiness signs detected, monitoring escalation path',
       };
     case DriverState.DISTRACTED:
       return {
@@ -31,6 +33,7 @@ function deriveDecision(data: DMSTelemetry): DecisionInfo {
         primaryCause: `Gaze off road (${(data.distraction.duration_ms / 1000).toFixed(1)}s)`,
         secondaryCause: `Distraction score: ${data.distraction.score.toFixed(0)}%`,
         hmiAction: 'Visual HUD alert',
+        whyExplanation: 'Gaze-away threshold exceeded, driver intervention needed',
       };
     case DriverState.FATIGUED:
       return {
@@ -39,6 +42,7 @@ function deriveDecision(data: DMSTelemetry): DecisionInfo {
         primaryCause: `Fatigue score critical`,
         secondaryCause: `Yawn count: ${data.drowsiness.yawnCount}`,
         hmiAction: 'Haptic alert + rest stop suggestion',
+        whyExplanation: 'Critical state detected - immediate ADAS escalation required',
       };
     case DriverState.PHONE_USE:
       return {
@@ -47,6 +51,7 @@ function deriveDecision(data: DMSTelemetry): DecisionInfo {
         primaryCause: `Phone detected (${data.phoneSuspicion.confidence.toFixed(0)}%)`,
         secondaryCause: `Hand: ${data.phoneSuspicion.handPosition}`,
         hmiAction: 'Audio warning + ADAS takeover prep',
+        whyExplanation: 'Critical state detected - immediate ADAS escalation required',
       };
     default:
       return {
@@ -55,12 +60,21 @@ function deriveDecision(data: DMSTelemetry): DecisionInfo {
         primaryCause: 'All metrics nominal',
         secondaryCause: 'Attention sustained',
         hmiAction: 'No action required',
+        whyExplanation: 'All biometric indicators within safe thresholds',
       };
   }
 }
 
+function getDegradedReason(data: DMSTelemetry): string {
+  if (data.confidence.overall >= 0.5) return 'None';
+  if (!data.confidence.faceDetected) return 'Face not detected';
+  if (!data.confidence.eyesVisible) return 'Eyes not visible';
+  return 'Low signal quality';
+}
+
 export const DecisionCard: React.FC<DecisionCardProps> = ({ data }) => {
   const decision = deriveDecision(data);
+  const degradedReason = getDegradedReason(data);
 
   return (
     <div className="bg-dms-panel rounded-lg border border-dms-accent/20 shadow-[0_0_8px_rgba(0,212,255,0.1)] p-3 flex flex-col gap-2">
@@ -85,6 +99,30 @@ export const DecisionCard: React.FC<DecisionCardProps> = ({ data }) => {
           <span className="text-[9px] text-slate-500 w-14 shrink-0 mt-0.5">SECOND.</span>
           <span className="text-[11px] text-slate-300">{decision.secondaryCause}</span>
         </div>
+      </div>
+
+      {/* Confidence */}
+      <div className="flex items-center justify-between pt-1 border-t border-slate-700/50">
+        <span className="text-[10px] text-slate-400">Confidence</span>
+        <span className="text-[10px] font-mono text-dms-accent">
+          {(data.confidence.overall * 100).toFixed(0)}%
+        </span>
+      </div>
+
+      {/* Degraded Reason */}
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] text-slate-400">Degraded Reason</span>
+        <span className={`text-[10px] font-mono ${degradedReason === 'None' ? 'text-slate-500' : 'text-dms-warning'}`}>
+          {degradedReason}
+        </span>
+      </div>
+
+      {/* ADAS Integration Score */}
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] text-slate-400">ADAS Integration</span>
+        <span className="text-[10px] font-mono text-dms-accent">
+          {(data.adasFusion.integrationScore * 100).toFixed(0)}%
+        </span>
       </div>
 
       {/* HMI Action */}
@@ -116,6 +154,12 @@ export const DecisionCard: React.FC<DecisionCardProps> = ({ data }) => {
           <div className={`w-2 h-2 rounded-full mx-auto ${data.adasFusion.speedAdaptation ? 'bg-dms-success' : 'bg-slate-600'}`} />
           <span className="text-[8px] text-slate-500">ISA</span>
         </div>
+      </div>
+
+      {/* Why Explanation */}
+      <div className="pt-1 border-t border-slate-700/50">
+        <span className="text-[9px] text-slate-500 uppercase tracking-wider">Why?</span>
+        <p className="text-[10px] text-slate-400 mt-0.5 italic">{decision.whyExplanation}</p>
       </div>
     </div>
   );
