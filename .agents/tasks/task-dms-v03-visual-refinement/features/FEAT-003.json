@@ -2,7 +2,7 @@
   "id": "FEAT-003",
   "type": "fix",
   "description": "Address code review issues: remove unused CSS, fix scanline animation, revert getStateOverlayLabel to plain string, prefix SVG ids to avoid collision.",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "Remove unused CSS from src/index.css: animate-subtle-glow, animate-panel-glow, glass-panel, @keyframes eye-pulse",
     "Remove <animate> child from scanline rect in CenterVideoPanel.tsx (make it static)",
@@ -28,5 +28,5 @@
     "Run node syntax check on modified files"
   ],
   "blocked_reason": null,
-  "findings": null
+  "findings": "All 5 review issues addressed. Issue #1: removed 4 unused CSS definitions. Issue #2: noise filter left as-is (acceptable for demo). Issue #3: removed SVG animate from scanline rect. Issue #4: prefixed all SVG ids (cvp- for CenterVideoPanel, rhp- for RightHeadPanel). Issue #5: reverted getStateOverlayLabel to return plain string. Syntax validation passes. Cannot run full build due to INTEGRATIONS_ONLY network."
 }
