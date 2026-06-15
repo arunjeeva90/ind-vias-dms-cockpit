@@ -43,15 +43,18 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
   const boxOffsetX = data.headPose.yaw * 0.3;
   const boxOffsetY = data.headPose.pitch * 0.3;
 
-  // Gaze arrow direction
+  // Gaze arrow direction - longer arrow with 1.5x multiplier
   const gazeAngleX = (data.gaze.x - 0.5) * 80;
-  const gazeAngleY = (data.gaze.y - 0.5) * -50;
+  const gazeAngleY = (data.gaze.y - 0.5) * -75;
 
   // Face bounding box center (driver on LEFT side of frame in RHD camera view)
   const faceCx = 220 + boxOffsetX;
   const faceCy = 190 + boxOffsetY;
   const faceW = 80;
   const faceH = 95;
+
+  // Face confidence percentage
+  const faceConfPct = Math.round(data.confidence.overall * 100);
 
   return (
     <div className="relative bg-dms-panel rounded-lg border border-dms-accent/30 shadow-[0_0_12px_rgba(0,212,255,0.15),inset_0_0_4px_rgba(0,212,255,0.05)] overflow-hidden h-full flex flex-col">
@@ -152,6 +155,20 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
               <stop offset="100%" stopColor="#060a14" />
             </linearGradient>
 
+            {/* Vignette radial gradient */}
+            <radialGradient id="cvp-vignetteGrad" cx="50%" cy="50%" r="60%">
+              <stop offset="0%" stopColor="#000000" stopOpacity="0" />
+              <stop offset="70%" stopColor="#000000" stopOpacity="0.1" />
+              <stop offset="100%" stopColor="#000000" stopOpacity="0.65" />
+            </radialGradient>
+
+            {/* Eye region highlight glow */}
+            <radialGradient id="cvp-eyeRegionGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#00e676" stopOpacity="0.12" />
+              <stop offset="80%" stopColor="#00e676" stopOpacity="0.04" />
+              <stop offset="100%" stopColor="#00e676" stopOpacity="0" />
+            </radialGradient>
+
             {/* Shadow filter */}
             <filter id="cvp-shadowFilter" x="-10%" y="-10%" width="120%" height="120%">
               <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000000" floodOpacity="0.5" />
@@ -190,6 +207,16 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
             <filter id="cvp-cyanDotGlow" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur" />
               <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 0 0 0 0.83  0 0 0 0 1  0 0 0 0.6 0" result="colored" />
+              <feMerge>
+                <feMergeNode in="colored" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+
+            {/* Dim glow for jawline landmarks */}
+            <filter id="cvp-jawGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="1" result="blur" />
+              <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.7  0 0 0 0 0.75  0 0 0 0 0.8  0 0 0 0.4 0" result="colored" />
               <feMerge>
                 <feMergeNode in="colored" />
                 <feMergeNode in="SourceGraphic" />
@@ -337,31 +364,65 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
             <path d={`M ${faceCx + faceW / 2 - 12} ${faceCy + faceH / 2} L ${faceCx + faceW / 2} ${faceCy + faceH / 2} L ${faceCx + faceW / 2} ${faceCy + faceH / 2 - 12}`} fill="none" stroke="#00d4ff" strokeWidth="2.5" />
           </g>
 
-          {/* ===== FACIAL LANDMARKS (12+ dots) ===== */}
-          {/* Left eye - 4 points (inner corner, outer corner, upper lid, lower lid) */}
+          {/* ===== EYE REGION HIGHLIGHT (ROI) ===== */}
+          {/* Left eye region */}
+          <ellipse cx={faceCx - 19} cy={faceCy - 8} rx="18" ry="10" fill="url(#cvp-eyeRegionGlow)" stroke="#00e676" strokeWidth="0.5" opacity="0.5" />
+          {/* Right eye region */}
+          <ellipse cx={faceCx + 19} cy={faceCy - 8} rx="18" ry="10" fill="url(#cvp-eyeRegionGlow)" stroke="#00e676" strokeWidth="0.5" opacity="0.5" />
+
+          {/* ===== FACIAL LANDMARKS (~29 dots) ===== */}
+
+          {/* --- Eyebrows: 3 dots per eyebrow = 6 --- */}
           <g filter="url(#cvp-greenGlow)">
-            <circle cx={faceCx - 14} cy={faceCy - 8} r="2.2" fill="#00e676" /> {/* Left eye inner corner */}
-            <circle cx={faceCx - 24} cy={faceCy - 8} r="2.2" fill="#00e676" /> {/* Left eye outer corner */}
-            <circle cx={faceCx - 19} cy={faceCy - 12} r="1.8" fill="#00e676" /> {/* Left eye upper lid */}
-            <circle cx={faceCx - 19} cy={faceCy - 5} r="1.8" fill="#00e676" /> {/* Left eye lower lid */}
+            {/* Left eyebrow: inner, middle, outer */}
+            <circle cx={faceCx - 12} cy={faceCy - 18} r="1.6" fill="#00e676" />
+            <circle cx={faceCx - 19} cy={faceCy - 20} r="1.6" fill="#00e676" />
+            <circle cx={faceCx - 26} cy={faceCy - 17} r="1.6" fill="#00e676" />
+            {/* Right eyebrow: inner, middle, outer */}
+            <circle cx={faceCx + 12} cy={faceCy - 18} r="1.6" fill="#00e676" />
+            <circle cx={faceCx + 19} cy={faceCy - 20} r="1.6" fill="#00e676" />
+            <circle cx={faceCx + 26} cy={faceCy - 17} r="1.6" fill="#00e676" />
           </g>
-          {/* Right eye - 4 points */}
+
+          {/* --- Eyes: 4 per eye = 8 --- */}
           <g filter="url(#cvp-greenGlow)">
-            <circle cx={faceCx + 14} cy={faceCy - 8} r="2.2" fill="#00e676" /> {/* Right eye inner corner */}
-            <circle cx={faceCx + 24} cy={faceCy - 8} r="2.2" fill="#00e676" /> {/* Right eye outer corner */}
-            <circle cx={faceCx + 19} cy={faceCy - 12} r="1.8" fill="#00e676" /> {/* Right eye upper lid */}
-            <circle cx={faceCx + 19} cy={faceCy - 5} r="1.8" fill="#00e676" /> {/* Right eye lower lid */}
+            {/* Left eye: inner corner, outer corner, upper lid, lower lid */}
+            <circle cx={faceCx - 14} cy={faceCy - 8} r="2.2" fill="#00e676" />
+            <circle cx={faceCx - 24} cy={faceCy - 8} r="2.2" fill="#00e676" />
+            <circle cx={faceCx - 19} cy={faceCy - 12} r="1.8" fill="#00e676" />
+            <circle cx={faceCx - 19} cy={faceCy - 5} r="1.8" fill="#00e676" />
+            {/* Right eye: inner corner, outer corner, upper lid, lower lid */}
+            <circle cx={faceCx + 14} cy={faceCy - 8} r="2.2" fill="#00e676" />
+            <circle cx={faceCx + 24} cy={faceCy - 8} r="2.2" fill="#00e676" />
+            <circle cx={faceCx + 19} cy={faceCy - 12} r="1.8" fill="#00e676" />
+            <circle cx={faceCx + 19} cy={faceCy - 5} r="1.8" fill="#00e676" />
           </g>
-          {/* Nose bridge */}
+
+          {/* --- Nose: bridge, tip, left wing, right wing = 4 --- */}
           <g filter="url(#cvp-cyanDotGlow)">
-            <circle cx={faceCx} cy={faceCy - 2} r="1.8" fill="#00d4ff" /> {/* Nose bridge */}
-            <circle cx={faceCx} cy={faceCy + 10} r="2.2" fill="#00d4ff" /> {/* Nose tip */}
+            <circle cx={faceCx} cy={faceCy - 2} r="1.8" fill="#00d4ff" />
+            <circle cx={faceCx} cy={faceCy + 10} r="2.2" fill="#00d4ff" />
+            <circle cx={faceCx - 8} cy={faceCy + 8} r="1.6" fill="#00d4ff" />
+            <circle cx={faceCx + 8} cy={faceCy + 8} r="1.6" fill="#00d4ff" />
           </g>
-          {/* Mouth corners and chin */}
+
+          {/* --- Mouth: upper lip center, lower lip center, left corner, right corner = 4 --- */}
           <g filter="url(#cvp-cyanDotGlow)">
-            <circle cx={faceCx - 12} cy={faceCy + 22} r="1.8" fill="#00d4ff" /> {/* Left mouth corner */}
-            <circle cx={faceCx + 12} cy={faceCy + 22} r="1.8" fill="#00d4ff" /> {/* Right mouth corner */}
-            <circle cx={faceCx} cy={faceCy + 38} r="1.8" fill="#00d4ff" /> {/* Chin */}
+            <circle cx={faceCx} cy={faceCy + 20} r="1.8" fill="#00d4ff" />
+            <circle cx={faceCx} cy={faceCy + 26} r="1.8" fill="#00d4ff" />
+            <circle cx={faceCx - 12} cy={faceCy + 22} r="1.8" fill="#00d4ff" />
+            <circle cx={faceCx + 12} cy={faceCy + 22} r="1.8" fill="#00d4ff" />
+          </g>
+
+          {/* --- Jawline: 7 dots along jaw curve from left ear to chin to right ear --- */}
+          <g filter="url(#cvp-jawGlow)">
+            <circle cx={faceCx - 35} cy={faceCy + 5} r="1.4" fill="#94a3b8" opacity="0.7" />
+            <circle cx={faceCx - 30} cy={faceCy + 20} r="1.4" fill="#94a3b8" opacity="0.7" />
+            <circle cx={faceCx - 22} cy={faceCy + 32} r="1.4" fill="#94a3b8" opacity="0.7" />
+            <circle cx={faceCx} cy={faceCy + 38} r="1.5" fill="#94a3b8" opacity="0.7" />
+            <circle cx={faceCx + 22} cy={faceCy + 32} r="1.4" fill="#94a3b8" opacity="0.7" />
+            <circle cx={faceCx + 30} cy={faceCy + 20} r="1.4" fill="#94a3b8" opacity="0.7" />
+            <circle cx={faceCx + 35} cy={faceCy + 5} r="1.4" fill="#94a3b8" opacity="0.7" />
           </g>
 
           {/* ===== GAZE DIRECTION ARROW ===== */}
@@ -371,13 +432,13 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
             x2={faceCx + gazeAngleX}
             y2={faceCy - 10 + gazeAngleY}
             stroke="url(#cvp-gazeArrowGrad)"
-            strokeWidth="2.5"
+            strokeWidth="3"
             markerEnd="url(#cvp-gazeArrowHead)"
             opacity="0.85"
           />
 
-          {/* ===== RGB HEAD POSE AXIS ===== */}
-          <g transform={`translate(${faceCx - 55}, ${faceCy + 55})`}>
+          {/* ===== RGB HEAD POSE AXIS (upper-right of face bbox) ===== */}
+          <g transform={`translate(${faceCx + 50}, ${faceCy - 50})`}>
             {/* X axis - Yaw (Red) */}
             <line x1="0" y1="0" x2={data.headPose.yaw * 0.5} y2="0" stroke="#ff4444" strokeWidth="2.5" strokeLinecap="round" />
             <text x={data.headPose.yaw * 0.5 + (data.headPose.yaw >= 0 ? 4 : -10)} y="4" fill="#ff4444" fontSize="8" fontFamily="monospace">X</text>
@@ -396,6 +457,9 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
 
           {/* ===== SCANLINE OVERLAY ===== */}
           <rect x="0" y="0" width="800" height="500" fill="url(#cvp-scanlines)" opacity="0.6" />
+
+          {/* ===== VIGNETTE EFFECT ===== */}
+          <rect x="0" y="0" width="800" height="500" fill="url(#cvp-vignetteGrad)" />
         </svg>
       </div>
 
@@ -408,11 +472,16 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
         </span>
       </div>
 
-      {/* Top-right: Driver info, Gaze, State */}
+      {/* Top-right: Driver info, Face confidence, Gaze, State */}
       <div className="absolute top-2 right-2 flex flex-col items-end gap-1 z-10">
-        <span className="text-[10px] font-mono text-dms-accent bg-black/60 px-1.5 py-0.5 rounded backdrop-blur-sm">
-          Driver D1
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] font-mono text-dms-accent bg-black/60 px-1.5 py-0.5 rounded backdrop-blur-sm">
+            Driver D1
+          </span>
+          <span className="text-[10px] font-mono text-emerald-400 bg-black/60 px-1.5 py-0.5 rounded backdrop-blur-sm">
+            Face {faceConfPct}%
+          </span>
+        </div>
         <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded backdrop-blur-sm ${
           data.gaze.onRoad ? 'text-dms-success bg-dms-success/10' : 'text-dms-warning bg-dms-warning/10'
         }`}>
