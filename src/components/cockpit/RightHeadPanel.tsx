@@ -9,6 +9,12 @@ export const RightHeadPanel: React.FC<RightHeadPanelProps> = ({ data }) => {
   const { yaw, pitch, roll } = data.headPose;
   const gazeOnRoad = data.gaze.onRoad;
 
+  // Clamp CSS rotation to +-45 degrees for visual stability
+  // Raw values are still shown in the numeric readout below
+  const clampedYaw = Math.max(-45, Math.min(45, yaw));
+  const clampedPitch = Math.max(-45, Math.min(45, pitch));
+  const clampedRoll = Math.max(-45, Math.min(45, roll));
+
   // Gaze direction for the unified beam
   const gazeX = (data.gaze.x - 0.5) * 80;
   const gazeY = (data.gaze.y - 0.5) * 60;
@@ -48,7 +54,7 @@ export const RightHeadPanel: React.FC<RightHeadPanelProps> = ({ data }) => {
           {/* Rotatable head */}
           <div
             style={{
-              transform: `rotateY(${yaw}deg) rotateX(${-pitch}deg) rotateZ(${roll}deg)`,
+              transform: `rotateY(${clampedYaw}deg) rotateX(${-clampedPitch}deg) rotateZ(${clampedRoll}deg)`,
               transformStyle: 'preserve-3d',
               transition: 'transform 0.15s ease-out',
               width: '220px',

@@ -43,7 +43,7 @@ function getStateLabel(state?: DriverState): string {
 }
 
 export const StatusBar: React.FC<StatusBarProps> = ({ data, connected, mode }) => {
-  const fps = data ? 30 : 0;
+  const fps = data ? 30 : 0; // Nominal target frame rate
   const cameraHealth = data?.confidence.faceDetected ? 'OK' : 'NO FACE';
   const tracking = data?.confidence.faceDetected ? 'LOCKED' : 'LOST';
 
@@ -68,10 +68,10 @@ export const StatusBar: React.FC<StatusBarProps> = ({ data, connected, mode }) =
         </span>
       </div>
 
-      {/* FPS */}
+      {/* FPS (nominal target rate) */}
       <div className="flex items-center gap-1.5">
         <Activity className="w-3.5 h-3.5 text-slate-400" />
-        <span className="text-[10px] text-slate-500">FPS</span>
+        <span className="text-[10px] text-slate-500">FPS NOM</span>
         <span className="text-xs font-mono text-dms-accent">{fps}</span>
       </div>
 

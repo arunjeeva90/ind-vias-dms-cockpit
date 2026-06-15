@@ -71,7 +71,7 @@ export const BottomTimeline: React.FC<BottomTimelineProps> = ({ data }) => {
   const alertsRef = useRef<AlertMarker[]>([]);
   const counterRef = useRef(0);
 
-  // Update rolling buffer
+  // Update rolling buffer - only when telemetry data changes
   useEffect(() => {
     const point: TimelineDataPoint = {
       t: counterRef.current++,
@@ -94,7 +94,7 @@ export const BottomTimeline: React.FC<BottomTimelineProps> = ({ data }) => {
         alertsRef.current = [...alertsRef.current, { time: counterRef.current, type: alertType }].slice(-20);
       }
     }
-  });
+  }, [data]);
 
   const chartData = historyRef.current;
   const alerts = alertsRef.current;
@@ -116,11 +116,11 @@ export const BottomTimeline: React.FC<BottomTimelineProps> = ({ data }) => {
         <div className="flex items-center gap-1">
           <span className="text-[7px] text-slate-500 uppercase shrink-0">Alerts</span>
           <div className="flex-1 h-3 bg-slate-900/50 rounded-sm relative overflow-hidden">
-            {alerts.map((alert, i) => {
+            {alerts.map((alert) => {
               const position = ((alert.time % MAX_POINTS) / MAX_POINTS) * 100;
               return (
                 <div
-                  key={i}
+                  key={alert.time}
                   className={`absolute top-0 bottom-0 w-1 rounded-sm ${
                     alert.type === 'danger' ? 'bg-dms-danger' : alert.type === 'warning' ? 'bg-dms-warning' : 'bg-dms-accent'
                   }`}
