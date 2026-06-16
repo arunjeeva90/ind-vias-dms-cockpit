@@ -134,35 +134,47 @@ interface HeadModelProps {
 }
 
 function HeadModel({ yaw, pitch, roll, gazeX, gazeY, gazeOnRoad, eyesVisible }: HeadModelProps) {
-  const groupRef = useRef<THREE.Group>(null);
+  const poseGroupRef = useRef<THREE.Group>(null);
   const gltf = useLoader(GLTFLoader, '/models/dms_head.glb');
+
+  // Static orientation correction: the GLB model faces sideways (left profile).
+  // Apply a fixed Y-axis rotation to make neutral pose = front-facing toward viewer.
+  const MODEL_Y_CORRECTION = -Math.PI / 2;
 
   // Process the model: center, scale, apply DMS materials
   const { scene, eyeMidpoint } = useMemo(() => {
     const clonedScene = gltf.scene.clone(true);
 
-    // Auto-center and auto-scale using Box3
-    const box = new THREE.Box3().setFromObject(clonedScene);
+    // Apply static orientation correction BEFORE computing bounding box
+    const correctionGroup = new THREE.Group();
+    correctionGroup.rotation.y = MODEL_Y_CORRECTION;
+    correctionGroup.add(clonedScene);
+
+    // Force matrix update so Box3 accounts for the correction rotation
+    correctionGroup.updateMatrixWorld(true);
+
+    // Auto-center and auto-scale using Box3 on the corrected group
+    const box = new THREE.Box3().setFromObject(correctionGroup);
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
 
-    // Center the model
-    clonedScene.position.sub(center);
+    // Center the corrected group
+    correctionGroup.position.sub(center);
 
     // Scale to fit within a normalized unit (max dimension = 2.0)
     const maxDim = Math.max(size.x, size.y, size.z);
     const scale = 2.0 / maxDim;
-    clonedScene.scale.setScalar(scale);
+    correctionGroup.scale.setScalar(scale);
 
     // Recalculate eye midpoint after centering and scaling
-    // Estimate eye midpoint at ~65% height of the head, centered horizontally
+    // After correction, face points along +Z (toward viewer/camera)
     const scaledSize = size.clone().multiplyScalar(scale);
     const eyeY = scaledSize.y * 0.15; // slightly above center
-    const eyeZ = scaledSize.z * 0.3; // forward-facing
+    const eyeZ = scaledSize.z * 0.3; // forward-facing (toward camera)
     const midpoint = new THREE.Vector3(0, eyeY, eyeZ);
 
     // Apply DMS technical face mesh materials
-    clonedScene.traverse((child) => {
+    correctionGroup.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         // Create dark translucent surface material
         const surfaceMaterial = new THREE.MeshPhysicalMaterial({
@@ -197,12 +209,12 @@ function HeadModel({ yaw, pitch, roll, gazeX, gazeY, gazeOnRoad, eyesVisible }: 
       }
     });
 
-    return { scene: clonedScene, eyeMidpoint: midpoint };
+    return { scene: correctionGroup, eyeMidpoint: midpoint };
   }, [gltf]);
 
-  // Smooth rotation interpolation
+  // Smooth rotation interpolation (applied to outer pose group only)
   useFrame(() => {
-    if (groupRef.current) {
+    if (poseGroupRef.current) {
       // Clamp visual rotation
       const targetYaw = degToRad(clamp(yaw, -45, 45));
       const targetPitch = degToRad(clamp(pitch, -30, 30));
@@ -210,14 +222,14 @@ function HeadModel({ yaw, pitch, roll, gazeX, gazeY, gazeOnRoad, eyesVisible }: 
 
       // Smooth lerp for rotation
       const lerpFactor = 0.08;
-      groupRef.current.rotation.y += (targetYaw - groupRef.current.rotation.y) * lerpFactor;
-      groupRef.current.rotation.x += (-targetPitch - groupRef.current.rotation.x) * lerpFactor;
-      groupRef.current.rotation.z += (targetRoll - groupRef.current.rotation.z) * lerpFactor;
+      poseGroupRef.current.rotation.y += (targetYaw - poseGroupRef.current.rotation.y) * lerpFactor;
+      poseGroupRef.current.rotation.x += (-targetPitch - poseGroupRef.current.rotation.x) * lerpFactor;
+      poseGroupRef.current.rotation.z += (targetRoll - poseGroupRef.current.rotation.z) * lerpFactor;
     }
   });
 
   return (
-    <group ref={groupRef}>
+    <group ref={poseGroupRef}>
       <primitive object={scene} />
 
       {/* Eye glow indicators */}
