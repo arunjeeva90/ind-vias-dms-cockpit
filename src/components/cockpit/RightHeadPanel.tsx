@@ -161,9 +161,10 @@ function HeadModel({ yaw, pitch, roll, gazeX, gazeY, gazeOnRoad, eyesVisible }: 
     // Center the corrected group
     correctionGroup.position.sub(center);
 
-    // Scale to fit within a normalized unit (max dimension = 2.3 for larger model)
+    // Scale to fit within a normalized unit — MODEL_FIT_SCALE controls breathing room
+    const MODEL_FIT_SCALE = 0.72; // 0.72 = 28% smaller than tight fit for comfortable framing
     const maxDim = Math.max(size.x, size.y, size.z);
-    const scale = 2.3 / maxDim;
+    const scale = (2.0 / maxDim) * MODEL_FIT_SCALE;
     correctionGroup.scale.setScalar(scale);
 
     // Recalculate eye midpoint after centering and scaling
@@ -189,12 +190,12 @@ function HeadModel({ yaw, pitch, roll, gazeX, gazeY, gazeOnRoad, eyesVisible }: 
           depthWrite: true,
         });
 
-        // Cleaner wireframe overlay — higher opacity for clarity
+        // Cleaner wireframe overlay — visible but not noisy
         const wireframeMaterial = new THREE.MeshBasicMaterial({
           color: new THREE.Color('#00d4ff'),
           wireframe: true,
           transparent: true,
-          opacity: 0.5,
+          opacity: 0.38,
         });
 
         // Replace material with multi-material approach using groups
@@ -234,18 +235,18 @@ function HeadModel({ yaw, pitch, roll, gazeX, gazeY, gazeOnRoad, eyesVisible }: 
 
       {/* Eye glow indicators — positioned at eye socket level */}
       <mesh position={[-0.18, eyeMidpoint.y - 0.02, eyeMidpoint.z + 0.08]}>
-        <sphereGeometry args={[0.045, 12, 12]} />
+        <sphereGeometry args={[0.035, 12, 12]} />
         <meshBasicMaterial
           color={eyesVisible ? '#00ffcc' : '#334455'}
-          opacity={eyesVisible ? 0.85 : 0.25}
+          opacity={eyesVisible ? 0.75 : 0.2}
           transparent
         />
       </mesh>
       <mesh position={[0.18, eyeMidpoint.y - 0.02, eyeMidpoint.z + 0.08]}>
-        <sphereGeometry args={[0.045, 12, 12]} />
+        <sphereGeometry args={[0.035, 12, 12]} />
         <meshBasicMaterial
           color={eyesVisible ? '#00ffcc' : '#334455'}
-          opacity={eyesVisible ? 0.85 : 0.25}
+          opacity={eyesVisible ? 0.75 : 0.2}
           transparent
         />
       </mesh>
@@ -353,7 +354,7 @@ interface CanvasContentProps {
 function CanvasContent({ data }: CanvasContentProps) {
   return (
     <Canvas
-      camera={{ position: [0, 0, 2.8], fov: 42, near: 0.1, far: 20 }}
+      camera={{ position: [0, 0, 3.5], fov: 38, near: 0.1, far: 20 }}
       gl={{ antialias: true, alpha: true }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
