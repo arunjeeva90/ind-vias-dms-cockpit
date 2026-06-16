@@ -22,8 +22,8 @@ function degToRad(degrees: number): number {
 // 0-AXIS REFERENCE (stationary, does not rotate with head)
 // ============================================================
 function ZeroAxisReference() {
-  const verticalPoints = useMemo(() => new Float32Array([0, -1.2, 0, 0, 1.2, 0]), []);
-  const horizontalPoints = useMemo(() => new Float32Array([-1.0, 0, 0, 1.0, 0, 0]), []);
+  const verticalPoints = useMemo(() => new Float32Array([0, -1.0, 0, 0, 1.0, 0]), []);
+  const horizontalPoints = useMemo(() => new Float32Array([-0.8, 0, 0, 0.8, 0, 0]), []);
 
   return (
     <group>
@@ -35,7 +35,7 @@ function ZeroAxisReference() {
             args={[verticalPoints, 3]}
           />
         </bufferGeometry>
-        <lineBasicMaterial color="#ffffff" opacity={0.12} transparent depthTest={false} />
+        <lineBasicMaterial color="#ffffff" opacity={0.08} transparent depthTest={false} />
       </line>
       {/* Horizontal line */}
       <line>
@@ -45,12 +45,12 @@ function ZeroAxisReference() {
             args={[horizontalPoints, 3]}
           />
         </bufferGeometry>
-        <lineBasicMaterial color="#ffffff" opacity={0.12} transparent depthTest={false} />
+        <lineBasicMaterial color="#ffffff" opacity={0.08} transparent depthTest={false} />
       </line>
       {/* Center dot */}
       <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[0.02, 8, 8]} />
-        <meshBasicMaterial color="#ffffff" opacity={0.2} transparent />
+        <sphereGeometry args={[0.015, 8, 8]} />
+        <meshBasicMaterial color="#ffffff" opacity={0.15} transparent />
       </mesh>
     </group>
   );
@@ -67,15 +67,15 @@ interface GazeConeProps {
 }
 
 function GazeCone({ gazeX, gazeY, onRoad, eyeMidpoint }: GazeConeProps) {
-  const gazeLinePoints = useMemo(() => new Float32Array([0, 0, 0, 0, 0, -0.9]), []);
+  const gazeLinePoints = useMemo(() => new Float32Array([0, 0, 0, 0, 0, -1.1]), []);
 
   // Compute cone direction based on gaze data
   const { position, rotationArray, color } = useMemo(() => {
-    const coneColor = onRoad ? '#00e676' : '#ff9800';
+    const coneColor = onRoad ? '#00e6a0' : '#ff9800';
 
     // Gaze offset from center (0.5 is center)
-    const offsetX = (gazeX - 0.5) * 0.6; // horizontal deviation
-    const offsetY = (gazeY - 0.5) * 0.4; // vertical deviation
+    const offsetX = (gazeX - 0.5) * 0.7; // horizontal deviation
+    const offsetY = (gazeY - 0.5) * 0.5; // vertical deviation
 
     // Cone points forward (along -Z axis) with slight steering
     const rotX = -offsetY * 0.8; // pitch adjustment
@@ -90,18 +90,18 @@ function GazeCone({ gazeX, gazeY, onRoad, eyeMidpoint }: GazeConeProps) {
 
   return (
     <group position={position} rotation={rotationArray}>
-      {/* Cone pointing forward (-Z direction) */}
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, -0.5]}>
-        <coneGeometry args={[0.25, 0.8, 16, 1, true]} />
+      {/* Cone pointing forward (-Z direction) — larger and more visible */}
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, -0.55]}>
+        <coneGeometry args={[0.3, 1.0, 20, 1, true]} />
         <meshBasicMaterial
           color={color}
-          opacity={0.25}
+          opacity={0.35}
           transparent
           side={THREE.DoubleSide}
           depthWrite={false}
         />
       </mesh>
-      {/* Center line */}
+      {/* Center line — more visible */}
       <line>
         <bufferGeometry>
           <bufferAttribute
@@ -109,12 +109,12 @@ function GazeCone({ gazeX, gazeY, onRoad, eyeMidpoint }: GazeConeProps) {
             args={[gazeLinePoints, 3]}
           />
         </bufferGeometry>
-        <lineBasicMaterial color={color} opacity={0.6} transparent />
+        <lineBasicMaterial color={color} opacity={0.75} transparent />
       </line>
       {/* Origin dot */}
       <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[0.03, 8, 8]} />
-        <meshBasicMaterial color={color} opacity={0.8} transparent />
+        <sphereGeometry args={[0.035, 10, 10]} />
+        <meshBasicMaterial color={color} opacity={0.9} transparent />
       </mesh>
     </group>
   );
@@ -161,40 +161,40 @@ function HeadModel({ yaw, pitch, roll, gazeX, gazeY, gazeOnRoad, eyesVisible }: 
     // Center the corrected group
     correctionGroup.position.sub(center);
 
-    // Scale to fit within a normalized unit (max dimension = 2.0)
+    // Scale to fit within a normalized unit (max dimension = 2.3 for larger model)
     const maxDim = Math.max(size.x, size.y, size.z);
-    const scale = 2.0 / maxDim;
+    const scale = 2.3 / maxDim;
     correctionGroup.scale.setScalar(scale);
 
     // Recalculate eye midpoint after centering and scaling
     // After correction, face points along +Z (toward viewer/camera)
     const scaledSize = size.clone().multiplyScalar(scale);
-    const eyeY = scaledSize.y * 0.15; // slightly above center
-    const eyeZ = scaledSize.z * 0.3; // forward-facing (toward camera)
+    const eyeY = scaledSize.y * 0.12; // slightly above center — lowered for eye socket region
+    const eyeZ = scaledSize.z * 0.35; // forward-facing (toward camera)
     const midpoint = new THREE.Vector3(0, eyeY, eyeZ);
 
     // Apply DMS technical face mesh materials
     correctionGroup.traverse((child) => {
       if (child instanceof THREE.Mesh) {
-        // Create dark translucent surface material
+        // Create dark cyan/blue translucent surface material
         const surfaceMaterial = new THREE.MeshPhysicalMaterial({
-          color: new THREE.Color('#0a1628'),
+          color: new THREE.Color('#0c2a40'),
           transparent: true,
-          opacity: 0.6,
-          roughness: 0.3,
-          metalness: 0.4,
-          clearcoat: 0.3,
-          clearcoatRoughness: 0.4,
+          opacity: 0.28,
+          roughness: 0.4,
+          metalness: 0.3,
+          clearcoat: 0.2,
+          clearcoatRoughness: 0.5,
           side: THREE.FrontSide,
           depthWrite: true,
         });
 
-        // Store original geometry for wireframe overlay
+        // Cleaner wireframe overlay — higher opacity for clarity
         const wireframeMaterial = new THREE.MeshBasicMaterial({
           color: new THREE.Color('#00d4ff'),
           wireframe: true,
           transparent: true,
-          opacity: 0.18,
+          opacity: 0.5,
         });
 
         // Replace material with multi-material approach using groups
@@ -232,20 +232,20 @@ function HeadModel({ yaw, pitch, roll, gazeX, gazeY, gazeOnRoad, eyesVisible }: 
     <group ref={poseGroupRef}>
       <primitive object={scene} />
 
-      {/* Eye glow indicators */}
-      <mesh position={[-0.15, eyeMidpoint.y, eyeMidpoint.z + 0.05]}>
-        <sphereGeometry args={[0.04, 12, 12]} />
+      {/* Eye glow indicators — positioned at eye socket level */}
+      <mesh position={[-0.18, eyeMidpoint.y - 0.02, eyeMidpoint.z + 0.08]}>
+        <sphereGeometry args={[0.045, 12, 12]} />
         <meshBasicMaterial
           color={eyesVisible ? '#00ffcc' : '#334455'}
-          opacity={eyesVisible ? 0.9 : 0.3}
+          opacity={eyesVisible ? 0.85 : 0.25}
           transparent
         />
       </mesh>
-      <mesh position={[0.15, eyeMidpoint.y, eyeMidpoint.z + 0.05]}>
-        <sphereGeometry args={[0.04, 12, 12]} />
+      <mesh position={[0.18, eyeMidpoint.y - 0.02, eyeMidpoint.z + 0.08]}>
+        <sphereGeometry args={[0.045, 12, 12]} />
         <meshBasicMaterial
           color={eyesVisible ? '#00ffcc' : '#334455'}
-          opacity={eyesVisible ? 0.9 : 0.3}
+          opacity={eyesVisible ? 0.85 : 0.25}
           transparent
         />
       </mesh>
@@ -267,29 +267,29 @@ function HeadModel({ yaw, pitch, roll, gazeX, gazeY, gazeOnRoad, eyesVisible }: 
 function SceneLighting() {
   return (
     <>
-      {/* Subtle ambient fill */}
-      <ambientLight intensity={0.15} color="#1a1a3a" />
+      {/* Soft blue ambient fill */}
+      <ambientLight intensity={0.25} color="#1a2a4a" />
 
-      {/* Primary front key light (dim) */}
-      <directionalLight position={[0, 0, 3]} intensity={0.3} color="#4488cc" />
+      {/* Primary soft cyan front key light */}
+      <directionalLight position={[0, 0.5, 3]} intensity={0.6} color="#44aadd" />
 
-      {/* Blue/violet LTEPS rim lights */}
-      <pointLight position={[-2, 1, -1]} intensity={0.8} color="#4466ff" distance={6} />
-      <pointLight position={[2, 1, -1]} intensity={0.8} color="#7744ff" distance={6} />
+      {/* Magenta/violet LTEPS rim lights (side/back) */}
+      <pointLight position={[-2.5, 0.5, -1.5]} intensity={1.0} color="#8844cc" distance={7} />
+      <pointLight position={[2.5, 0.5, -1.5]} intensity={1.0} color="#cc44aa" distance={7} />
 
-      {/* Top rim light */}
-      <pointLight position={[0, 2.5, -0.5]} intensity={0.4} color="#6644cc" distance={5} />
+      {/* Top subtle violet */}
+      <pointLight position={[0, 2.5, -0.5]} intensity={0.5} color="#6644cc" distance={5} />
 
-      {/* Bottom subtle fill */}
-      <pointLight position={[0, -2, 1]} intensity={0.2} color="#003366" distance={4} />
+      {/* Bottom subtle blue fill */}
+      <pointLight position={[0, -2, 1.5]} intensity={0.3} color="#004488" distance={5} />
 
-      {/* Cyan accent from front-left */}
+      {/* Cyan accent from front-right */}
       <spotLight
-        position={[-1.5, 0.5, 2]}
-        intensity={0.5}
+        position={[1.2, 0.3, 2.5]}
+        intensity={0.7}
         color="#00d4ff"
-        angle={0.6}
-        penumbra={0.8}
+        angle={0.7}
+        penumbra={0.9}
         distance={6}
       />
     </>
@@ -353,11 +353,11 @@ interface CanvasContentProps {
 function CanvasContent({ data }: CanvasContentProps) {
   return (
     <Canvas
-      camera={{ position: [0, 0, 3.2], fov: 40, near: 0.1, far: 20 }}
+      camera={{ position: [0, 0, 2.8], fov: 42, near: 0.1, far: 20 }}
       gl={{ antialias: true, alpha: true }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.2;
+        gl.toneMappingExposure = 1.4;
       }}
       style={{ width: '100%', height: '100%' }}
     >
