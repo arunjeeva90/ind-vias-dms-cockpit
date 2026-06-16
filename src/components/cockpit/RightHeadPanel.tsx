@@ -162,7 +162,7 @@ function HeadModel({ yaw, pitch, roll, gazeX, gazeY, gazeOnRoad, eyesVisible }: 
     correctionGroup.position.sub(center);
 
     // Scale to fit within a normalized unit — MODEL_FIT_SCALE controls breathing room
-    const MODEL_FIT_SCALE = 0.72; // 0.72 = 28% smaller than tight fit for comfortable framing
+    const MODEL_FIT_SCALE = 0.756; // ~5% larger than previous 0.72
     const maxDim = Math.max(size.x, size.y, size.z);
     const scale = (2.0 / maxDim) * MODEL_FIT_SCALE;
     correctionGroup.scale.setScalar(scale);
