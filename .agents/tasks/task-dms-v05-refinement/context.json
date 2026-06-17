@@ -1,0 +1,27 @@
+{
+  "project_type": "React 18 SPA with Vite, Tailwind CSS, TypeScript - DMS (Driver Monitoring System) Cockpit Dashboard",
+  "language": "TypeScript/TSX",
+  "build_system": "Vite 5.4 with pnpm (no node_modules currently installed)",
+  "test_framework": "Vitest with @testing-library/react and jsdom",
+  "build_command": "npx tsc --noEmit (cannot run - no node_modules, INTEGRATIONS_ONLY network)",
+  "test_command": "npx vitest run (cannot run - no node_modules, INTEGRATIONS_ONLY network)",
+  "verification_instructions": "Since node_modules is not installed and network is INTEGRATIONS_ONLY (npm registry blocked), verification must be done via AST/syntax inspection only. Ensure no TypeScript errors by careful code review. Check that all imports exist and types are correct.",
+  "snapshot_or_generated_files": null,
+  "setup_instructions": "Cannot install - INTEGRATIONS_ONLY network mode blocks npm registry access",
+  "environment_constraints": "INTEGRATIONS_ONLY network - npm registry blocked, cannot install packages, cannot run build/test commands. node_modules directory does not exist. All verification must be done via code inspection and grep-based validation. No new dependencies allowed.",
+  "contribution_requirements": "Do not modify: src/services/, src/hooks/useTelemetry.ts. No new npm packages. Must use only React, TypeScript, Tailwind, Recharts, Lucide-react.",
+  "key_patterns": "Components in src/components/cockpit/. Each component receives DMSTelemetry as 'data' prop. Tailwind classes used extensively with custom colors (dms-dark, dms-panel, dms-accent #00d4ff, dms-warning, dms-danger, dms-success, lteps-*). SVG used for visualizations. DriverState enum values are lowercase strings (attentive, drowsy, distracted, fatigued, phone_use).",
+  "relevant_files": [
+    "src/types/dms.ts",
+    "src/components/cockpit/RightHeadPanel.tsx",
+    "src/components/cockpit/CenterVideoPanel.tsx",
+    "src/components/cockpit/LeftConsole.tsx",
+    "src/components/cockpit/DecisionCard.tsx",
+    "src/components/cockpit/StatusBar.tsx",
+    "src/components/cockpit/BottomTimeline.tsx",
+    "src/components/Dashboard.tsx",
+    "src/services/dummyTelemetry.ts",
+    "tailwind.config.js"
+  ],
+  "directory_structure": "src/components/cockpit/ contains all 6 panel components. src/types/dms.ts has all type definitions. src/services/ has telemetry providers (DO NOT MODIFY). src/hooks/ has useTelemetry hook (DO NOT MODIFY). Dashboard.tsx is the main layout component."
+}

@@ -1,0 +1,25 @@
+{
+  "project_type": "React SPA dashboard for DMS (Driver Monitoring System) cockpit",
+  "language": "TypeScript (React 18 + TSX)",
+  "build_system": "Vite 5 with pnpm (no node_modules currently installed, network blocked)",
+  "test_framework": "vitest with @testing-library/react",
+  "build_command": "Cannot run build (no node_modules, network blocked). Use Node.js AST parsing for syntax validation.",
+  "test_command": "Cannot run tests (no node_modules, network blocked). Validate TypeScript syntax only.",
+  "verification_instructions": "Since npm install is impossible under INTEGRATIONS_ONLY network, validate by: 1) Ensure TSX files parse correctly as valid TypeScript/JSX using node --check or swc parse. 2) Verify no missing imports. 3) Verify type usage matches src/types/dms.ts interfaces.",
+  "snapshot_or_generated_files": null,
+  "setup_instructions": "npm install (blocked by network). Dependencies: react 18, recharts 2.13, lucide-react 0.460, tailwindcss 3.4, vite 5.4",
+  "environment_constraints": "INTEGRATIONS_ONLY network mode. Cannot install packages, pull images, or access external URLs. Must validate using syntax/AST only. No Docker available.",
+  "contribution_requirements": "Do NOT modify: services/, hooks/, types/, Dashboard.tsx layout structure. Only modify cockpit visual components.",
+  "key_patterns": "Components use FC<Props> pattern with typed interfaces. Tailwind utility classes with custom dms-* colors (dms-dark, dms-panel, dms-accent, dms-warning, dms-danger, dms-success). SVG inline for graphics. Recharts for timeline charts. Lucide-react for icons. All components receive DMSTelemetry data prop.",
+  "relevant_files": [
+    "src/components/cockpit/CenterVideoPanel.tsx",
+    "src/components/cockpit/RightHeadPanel.tsx",
+    "src/components/cockpit/LeftConsole.tsx",
+    "src/components/cockpit/BottomTimeline.tsx",
+    "src/index.css",
+    "src/types/dms.ts",
+    "tailwind.config.js",
+    "src/components/Dashboard.tsx"
+  ],
+  "directory_structure": "src/components/cockpit/ contains all visual panel components. src/types/dms.ts has all telemetry types. src/services/ has telemetry data providers (DO NOT MODIFY). src/hooks/ has useTelemetry hook (DO NOT MODIFY)."
+}
