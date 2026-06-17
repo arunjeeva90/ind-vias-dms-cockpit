@@ -72,6 +72,61 @@ npm test
 npm run lint
 ```
 
+## Live DMS PoC Integration
+
+The dashboard supports live telemetry from a real or simulated DMS pipeline over WebSocket.
+
+### Quick Start
+
+**Terminal 1 - Frontend:**
+
+```bash
+npm install
+npm run dev
+```
+
+The dashboard will be available at `http://localhost:3000`.
+
+**Terminal 2 - Python PoC Sender:**
+
+```bash
+pip install websockets
+python tools/dms_ws_sender_example.py
+```
+
+This starts a WebSocket server that broadcasts simulated DMS telemetry at 10Hz.
+
+### Endpoint
+
+| Property | Value |
+|----------|-------|
+| WebSocket URL | `ws://localhost:8765/dms` |
+| Message Format | JSON (`DmsTelemetryMessage`) |
+| Frequency | 10 Hz (recommended) |
+| Schema Version | `1.0.0` |
+
+To use a custom URL, set the `VITE_DMS_WS_URL` environment variable in a `.env` file before starting the frontend.
+
+### How It Works
+
+```
++-------------------+         WebSocket (10Hz JSON)         +-------------------+
+|  DMS Pipeline     | -------------------------------------> |  Cockpit Dashboard|
+|  (Python sender)  |    ws://localhost:8765/dms             |  (React + Vite)   |
++-------------------+                                       +-------------------+
+       |                                                           |
+  Sends DmsTelemetryMessage                               Validates & adapts
+  with head pose, gaze,                                   to internal DMSTelemetry
+  scores, driver state                                    format for UI rendering
+```
+
+The frontend uses a receiver architecture with automatic fallback:
+1. Attempts to connect to the WebSocket endpoint
+2. If unavailable, falls back to built-in dummy telemetry (6-state simulation machine)
+3. Reconnects automatically with exponential backoff if the connection drops
+
+For full documentation on the telemetry interface, see [docs/DMS_TELEMETRY_INTERFACE.md](docs/DMS_TELEMETRY_INTERFACE.md).
+
 ## Architecture
 
 ```

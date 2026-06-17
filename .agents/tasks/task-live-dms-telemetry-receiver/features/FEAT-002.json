@@ -2,7 +2,7 @@
   "id": "FEAT-002",
   "type": "feat",
   "description": "Create the Python PoC WebSocket sender example and all documentation (telemetry interface docs + README update).",
-  "status": "pending",
+  "status": "in_progress",
   "steps": [
     "Create tools/dms_ws_sender_example.py - a Python WebSocket server on ws://localhost:8765/dms that sends sample DmsTelemetryMessage at 10Hz. Simulate changing yaw/pitch/roll, gaze, drowsiness, distraction using sin-wave patterns. Use the 'websockets' package. Include instructions at the top as comments: pip install websockets && python tools/dms_ws_sender_example.py",
     "Create docs/DMS_TELEMETRY_INTERFACE.md with: WebSocket endpoint (ws://localhost:8765/dms), full JSON schema example, field meanings, units, score ranges (0.0-1.0), how to run dummy mode, how to run live PoC sender, how real DMS PoC should publish telemetry, troubleshooting section, expected message frequency (10Hz recommended).",
