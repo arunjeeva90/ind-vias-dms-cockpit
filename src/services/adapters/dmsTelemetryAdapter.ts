@@ -17,7 +17,7 @@ import { DmsTelemetryMessage } from '../../types/dmsTelemetryContract';
  * expected by the dashboard UI components.
  */
 export function toDashboardTelemetry(message: DmsTelemetryMessage): DMSTelemetry {
-  const driverState = mapDriverState(message.driverState.primary);
+  const driverState = mapDriverState(message);
 
   const headPose: HeadPose = {
     yaw: message.headPose.yawDeg,
@@ -32,43 +32,47 @@ export function toDashboardTelemetry(message: DmsTelemetryMessage): DMSTelemetry
   };
 
   const drowsiness: DrowsinessMetrics = {
-    perclos: message.scores.perclos * 100, // Convert 0-1 to 0-100 for UI
-    blinkRate: message.scores.blinkRate,
-    blinkDuration: message.scores.blinkDurationMs,
-    yawnCount: message.scores.yawnCount,
-    score: message.scores.drowsiness * 100, // Convert 0-1 to 0-100 for UI
+    perclos: message.eyes.perclos60s * 100,
+    blinkRate: message.eyes.blinkRatePerMin,
+    blinkDuration: message.eyes.blinkDurationMs,
+    yawnCount: 0, // Not directly available in contract
+    score: message.scores.drowsiness * 100,
   };
 
   const distraction: DistractionMetrics = {
-    score: message.scores.distraction * 100, // Convert 0-1 to 0-100 for UI
+    score: message.scores.distraction * 100,
     gazeOffRoad: !message.gaze.onRoad,
-    duration_ms: message.gaze.offRoadDurationMs,
+    duration_ms: message.gaze.eyesOffRoadMs,
   };
 
   const seatbelt: SeatbeltStatus = {
-    worn: message.behaviour.seatbeltWorn,
-    confidence: message.behaviour.seatbeltConfidence,
+    worn: message.behaviour.seatbeltFastened,
+    confidence: message.scores.dmsConfidence,
   };
 
   const phoneSuspicion: PhoneSuspicion = {
     detected: message.behaviour.phoneDetected,
-    confidence: message.scores.phoneConfidence * 100, // Convert 0-1 to 0-100
-    handPosition: message.behaviour.phoneHandPosition,
+    confidence: message.behaviour.phoneConfidence * 100,
+    handPosition: message.behaviour.phoneDetected ? 'detected' : 'none',
   };
 
   const confidence: DMSConfidence = {
-    overall: message.driverState.confidence,
-    faceDetected: true, // Derived: if we have a driverState, face is detected
-    eyesVisible: message.eyes.leftVisible || message.eyes.rightVisible,
-    quality: getQualityLabel(message.driverState.confidence),
+    overall: message.scores.dmsConfidence,
+    faceDetected: message.driverState.confidenceState !== 'DEGRADED',
+    eyesVisible: message.eyes.leftOpen || message.eyes.rightOpen,
+    quality: message.scores.cameraQuality > 0.7
+      ? 'good'
+      : message.scores.cameraQuality > 0.4
+        ? 'fair'
+        : 'poor',
   };
 
   const adasFusion: ADASFusion = {
     ready: message.adasFusion.ready,
-    laneKeepAssist: message.adasFusion.laneKeepAssist,
-    collisionWarning: message.adasFusion.collisionWarning,
-    speedAdaptation: message.adasFusion.speedAdaptation,
-    integrationScore: message.adasFusion.integrationScore * 100, // Convert 0-1 to 0-100
+    laneKeepAssist: message.adasFusion.ready,
+    collisionWarning: true,
+    speedAdaptation: message.adasFusion.ready,
+    integrationScore: message.adasFusion.integrationScore * 100,
   };
 
   return {
@@ -85,25 +89,26 @@ export function toDashboardTelemetry(message: DmsTelemetryMessage): DMSTelemetry
   };
 }
 
-function mapDriverState(primary: string): DriverState {
-  switch (primary) {
-    case 'attentive':
+/**
+ * Maps the new contract driverState.overall to existing DriverState enum.
+ * NORMAL -> ATTENTIVE, MONITOR -> DROWSY, WARNING -> DISTRACTED,
+ * DANGER -> FATIGUED (or PHONE_USE if phoneDetected), DEGRADED -> ATTENTIVE
+ */
+function mapDriverState(message: DmsTelemetryMessage): DriverState {
+  switch (message.driverState.overall) {
+    case 'NORMAL':
       return DriverState.ATTENTIVE;
-    case 'drowsy':
+    case 'MONITOR':
       return DriverState.DROWSY;
-    case 'fatigued':
-      return DriverState.FATIGUED;
-    case 'distracted':
+    case 'WARNING':
       return DriverState.DISTRACTED;
-    case 'phone_use':
-      return DriverState.PHONE_USE;
+    case 'DANGER':
+      return message.behaviour.phoneDetected
+        ? DriverState.PHONE_USE
+        : DriverState.FATIGUED;
+    case 'DEGRADED':
+      return DriverState.ATTENTIVE;
     default:
       return DriverState.ATTENTIVE;
   }
-}
-
-function getQualityLabel(confidence: number): string {
-  if (confidence > 0.8) return 'good';
-  if (confidence > 0.5) return 'fair';
-  return 'poor';
 }

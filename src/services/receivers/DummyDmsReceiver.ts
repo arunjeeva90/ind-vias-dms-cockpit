@@ -55,11 +55,13 @@ export class DummyDmsReceiver implements DmsTelemetryReceiver {
   private gazeY = 0.5;
   private drowsinessScore = 0;
   private distractionScore = 0;
-  private perclos = 0;
+  private attentionScore = 0.9;
+  private perclos5s = 0;
+  private perclos60s = 0;
   private blinkRate = 15;
   private blinkDuration = 150;
-  private yawnCount = 0;
   private phoneConfidence = 0;
+  private eyesOffRoadMs = 0;
 
   async connect(): Promise<void> {
     if (this.connected) return;
@@ -182,7 +184,9 @@ export class DummyDmsReceiver implements DmsTelemetryReceiver {
     // Target values based on state
     let targetDrowsiness = 0;
     let targetDistraction = 0;
-    let targetPerclos = 0;
+    let targetAttention = 0.9;
+    let targetPerclos5s = 0;
+    let targetPerclos60s = 0;
     let targetBlinkRate = 15;
     let targetBlinkDuration = 150;
     let targetPhoneConf = 0;
@@ -191,12 +195,16 @@ export class DummyDmsReceiver implements DmsTelemetryReceiver {
     let gazeOnRoad = true;
     let targetYaw = 0;
     let targetPitch = 0;
+    let yawnDetected = false;
+    let headDownDetected = false;
 
     switch (this.internalState) {
       case 'normal':
         targetDrowsiness = 0.05 + Math.random() * 0.1;
         targetDistraction = 0.05 + Math.random() * 0.08;
-        targetPerclos = 0.05 + Math.random() * 0.05;
+        targetAttention = 0.85 + Math.random() * 0.1;
+        targetPerclos5s = 0.03 + Math.random() * 0.04;
+        targetPerclos60s = 0.05 + Math.random() * 0.05;
         targetBlinkRate = 14 + Math.random() * 4;
         targetBlinkDuration = 120 + Math.random() * 60;
         targetGazeX = 0.45 + smoothNoise(t, 0.3) * 0.1;
@@ -209,7 +217,9 @@ export class DummyDmsReceiver implements DmsTelemetryReceiver {
       case 'getting_drowsy':
         targetDrowsiness = 0.35 + Math.random() * 0.2;
         targetDistraction = 0.15 + Math.random() * 0.1;
-        targetPerclos = 0.2 + Math.random() * 0.15;
+        targetAttention = 0.5 + Math.random() * 0.15;
+        targetPerclos5s = 0.15 + Math.random() * 0.1;
+        targetPerclos60s = 0.2 + Math.random() * 0.15;
         targetBlinkRate = 10 + Math.random() * 4;
         targetBlinkDuration = 250 + Math.random() * 100;
         targetGazeX = 0.45 + smoothNoise(t, 0.2) * 0.08;
@@ -217,12 +227,15 @@ export class DummyDmsReceiver implements DmsTelemetryReceiver {
         gazeOnRoad = true;
         targetYaw = smoothNoise(t, 0.1) * 8;
         targetPitch = 5 + smoothNoise(t, 0.12) * 8;
+        yawnDetected = Math.random() < 0.03;
         break;
 
       case 'drowsy':
         targetDrowsiness = 0.7 + Math.random() * 0.2;
         targetDistraction = 0.25 + Math.random() * 0.15;
-        targetPerclos = 0.4 + Math.random() * 0.25;
+        targetAttention = 0.2 + Math.random() * 0.15;
+        targetPerclos5s = 0.35 + Math.random() * 0.2;
+        targetPerclos60s = 0.4 + Math.random() * 0.25;
         targetBlinkRate = 6 + Math.random() * 4;
         targetBlinkDuration = 400 + Math.random() * 200;
         targetGazeX = 0.4 + smoothNoise(t, 0.15) * 0.12;
@@ -230,12 +243,16 @@ export class DummyDmsReceiver implements DmsTelemetryReceiver {
         gazeOnRoad = Math.random() > 0.3;
         targetYaw = smoothNoise(t, 0.08) * 15;
         targetPitch = 10 + smoothNoise(t, 0.1) * 12;
+        yawnDetected = Math.random() < 0.05;
+        headDownDetected = Math.random() < 0.1;
         break;
 
       case 'recovering':
         targetDrowsiness = 0.2 + Math.random() * 0.15;
         targetDistraction = 0.1 + Math.random() * 0.08;
-        targetPerclos = 0.1 + Math.random() * 0.08;
+        targetAttention = 0.7 + Math.random() * 0.1;
+        targetPerclos5s = 0.08 + Math.random() * 0.05;
+        targetPerclos60s = 0.1 + Math.random() * 0.08;
         targetBlinkRate = 18 + Math.random() * 6;
         targetBlinkDuration = 140 + Math.random() * 40;
         targetGazeX = 0.5 + smoothNoise(t, 0.4) * 0.06;
@@ -248,7 +265,9 @@ export class DummyDmsReceiver implements DmsTelemetryReceiver {
       case 'phone_check':
         targetDrowsiness = 0.05 + Math.random() * 0.08;
         targetDistraction = 0.6 + Math.random() * 0.25;
-        targetPerclos = 0.05 + Math.random() * 0.05;
+        targetAttention = 0.25 + Math.random() * 0.15;
+        targetPerclos5s = 0.05 + Math.random() * 0.05;
+        targetPerclos60s = 0.05 + Math.random() * 0.05;
         targetBlinkRate = 12 + Math.random() * 4;
         targetBlinkDuration = 140 + Math.random() * 40;
         targetPhoneConf = 0.7 + Math.random() * 0.25;
@@ -262,7 +281,9 @@ export class DummyDmsReceiver implements DmsTelemetryReceiver {
       case 'distracted':
         targetDrowsiness = 0.05 + Math.random() * 0.1;
         targetDistraction = 0.5 + Math.random() * 0.3;
-        targetPerclos = 0.05 + Math.random() * 0.05;
+        targetAttention = 0.3 + Math.random() * 0.15;
+        targetPerclos5s = 0.05 + Math.random() * 0.05;
+        targetPerclos60s = 0.05 + Math.random() * 0.05;
         targetBlinkRate = 14 + Math.random() * 4;
         targetBlinkDuration = 130 + Math.random() * 50;
         targetGazeX = 0.15 + Math.random() * 0.7;
@@ -276,7 +297,9 @@ export class DummyDmsReceiver implements DmsTelemetryReceiver {
     // Smooth lerp all values
     this.drowsinessScore = lerp(this.drowsinessScore, targetDrowsiness, lerpRate);
     this.distractionScore = lerp(this.distractionScore, targetDistraction, lerpRate);
-    this.perclos = lerp(this.perclos, targetPerclos, lerpRate);
+    this.attentionScore = lerp(this.attentionScore, targetAttention, lerpRate);
+    this.perclos5s = lerp(this.perclos5s, targetPerclos5s, lerpRate);
+    this.perclos60s = lerp(this.perclos60s, targetPerclos60s, lerpRate);
     this.blinkRate = lerp(this.blinkRate, targetBlinkRate, lerpRate);
     this.blinkDuration = lerp(this.blinkDuration, targetBlinkDuration, lerpRate);
     this.phoneConfidence = lerp(this.phoneConfidence, targetPhoneConf, lerpRate);
@@ -286,39 +309,45 @@ export class DummyDmsReceiver implements DmsTelemetryReceiver {
     this.headPitch = lerp(this.headPitch, clamp(targetPitch, -90, 90), lerpRate);
     this.headRoll = lerp(this.headRoll, clamp(smoothNoise(t, 0.18) * 8, -90, 90), lerpRate);
 
-    // Occasional yawn during drowsy states
-    if (
-      (this.internalState === 'drowsy' || this.internalState === 'getting_drowsy') &&
-      Math.random() < 0.005
-    ) {
-      this.yawnCount++;
+    // Track eyes off road duration
+    if (!gazeOnRoad) {
+      this.eyesOffRoadMs += 100; // 100ms per tick at 10Hz
+    } else {
+      this.eyesOffRoadMs = 0;
     }
 
-    const driverState = this.mapDriverState();
-    const eyesVisible = this.internalState !== 'drowsy' || Math.random() > 0.2;
+    const eyesOpen = this.internalState !== 'drowsy' || Math.random() > 0.2;
+    const leftOpenness = eyesOpen ? clamp(0.7 + smoothNoise(t, 0.4) * 0.2, 0, 1) : 0.1;
+    const rightOpenness = eyesOpen ? clamp(0.7 + smoothNoise(t, 0.35) * 0.2, 0, 1) : 0.1;
+
+    const { overall, drowsinessState, distractionState, recommendedAction } = this.mapDriverStates();
+    const cameraQuality = 0.85 + smoothNoise(t, 0.05) * 0.1;
+    const dmsConfidence = 0.9 + smoothNoise(t, 0.08) * 0.08;
 
     const connection: ConnectionStatus = {
-      latencyMs: 0,
-      droppedFrames: 0,
-      uptime: t,
+      pipelineMode: 'DUMMY',
+      cameraHealth: 'OK',
+      trackingStatus: 'LOCKED',
     };
 
     const driverStateOutput: DriverStateOutput = {
-      primary: driverState,
-      secondary: null,
-      confidence: 0.92 + smoothNoise(t, 0.1) * 0.05,
+      overall,
+      drowsinessState,
+      distractionState,
+      availabilityState: overall === 'DANGER' ? 'UNAVAILABLE' : overall === 'WARNING' ? 'LIMITED' : 'AVAILABLE',
+      confidenceState: dmsConfidence > 0.8 ? 'HIGH' : dmsConfidence > 0.6 ? 'MEDIUM' : 'LOW',
+      primaryCause: this.getPrimaryCause(),
+      secondaryCause: '',
+      recommendedAction,
     };
 
     const scores: DmsScores = {
+      attention: Math.round(clamp(this.attentionScore, 0, 1) * 1000) / 1000,
       drowsiness: Math.round(this.drowsinessScore * 1000) / 1000,
       distraction: Math.round(this.distractionScore * 1000) / 1000,
-      fatigue: Math.round(this.drowsinessScore * 0.8 * 1000) / 1000,
-      alertness: Math.round(clamp(1 - this.drowsinessScore - this.distractionScore * 0.5, 0, 1) * 1000) / 1000,
-      perclos: Math.round(this.perclos * 1000) / 1000,
-      blinkRate: Math.round(this.blinkRate * 10) / 10,
-      blinkDurationMs: Math.round(this.blinkDuration),
-      yawnCount: this.yawnCount,
-      phoneConfidence: Math.round(this.phoneConfidence * 1000) / 1000,
+      availability: Math.round(clamp(this.attentionScore * 0.9, 0, 1) * 1000) / 1000,
+      dmsConfidence: Math.round(clamp(dmsConfidence, 0, 1) * 1000) / 1000,
+      cameraQuality: Math.round(clamp(cameraQuality, 0, 1) * 1000) / 1000,
     };
 
     const headPose: HeadPoseTelemetry = {
@@ -330,38 +359,48 @@ export class DummyDmsReceiver implements DmsTelemetryReceiver {
     const gaze: GazeTelemetry = {
       x: Math.round(this.gazeX * 1000) / 1000,
       y: Math.round(this.gazeY * 1000) / 1000,
+      zone: gazeOnRoad ? 'forward' : 'off_road',
       onRoad: gazeOnRoad,
-      offRoadDurationMs: !gazeOnRoad ? Math.round(this.stateTimer * 100) : 0,
+      eyesOffRoadMs: this.eyesOffRoadMs,
+      confidence: Math.round(clamp(dmsConfidence, 0, 1) * 1000) / 1000,
     };
 
     const eyes: EyeTelemetry = {
-      leftOpenness: eyesVisible ? clamp(0.7 + smoothNoise(t, 0.4) * 0.2, 0, 1) : 0.1,
-      rightOpenness: eyesVisible ? clamp(0.7 + smoothNoise(t, 0.35) * 0.2, 0, 1) : 0.1,
-      leftVisible: eyesVisible,
-      rightVisible: eyesVisible,
+      leftOpen: eyesOpen,
+      rightOpen: eyesOpen,
+      leftOpenness: Math.round(leftOpenness * 1000) / 1000,
+      rightOpenness: Math.round(rightOpenness * 1000) / 1000,
+      blinkRatePerMin: Math.round(this.blinkRate * 10) / 10,
+      blinkDurationMs: Math.round(this.blinkDuration),
+      perclos5s: Math.round(clamp(this.perclos5s, 0, 1) * 1000) / 1000,
+      perclos60s: Math.round(clamp(this.perclos60s, 0, 1) * 1000) / 1000,
     };
 
     const behaviour: BehaviourTelemetry = {
-      seatbeltWorn: true,
-      seatbeltConfidence: 0.98 + Math.random() * 0.02,
+      seatbeltFastened: true,
       phoneDetected: this.internalState === 'phone_check',
-      phoneHandPosition: this.internalState === 'phone_check' ? 'right_hand_raised' : 'on_wheel',
+      phoneConfidence: Math.round(this.phoneConfidence * 1000) / 1000,
       smokingDetected: false,
+      yawnDetected,
+      occlusionDetected: false,
+      talkingDetected: false,
+      headDownDetected,
     };
 
     const vehicle: VehicleTelemetry = {
-      speedKph: 80 + smoothNoise(t, 0.05) * 20,
-      steeringAngleDeg: smoothNoise(t, 0.3) * 5,
-      brakePressure: 0,
-      turnSignalActive: false,
+      speedKph: Math.round((80 + smoothNoise(t, 0.05) * 20) * 10) / 10,
+      steeringAngleDeg: Math.round(smoothNoise(t, 0.3) * 5 * 10) / 10,
+      indicator: 'OFF',
+      gear: 'D',
     };
 
     const adasFusion: AdasFusionTelemetry = {
       ready: this.drowsinessScore < 0.6 && this.distractionScore < 0.7,
-      laneKeepAssist: this.drowsinessScore < 0.5,
-      collisionWarning: true,
-      speedAdaptation: this.distractionScore < 0.6,
-      integrationScore: clamp(0.95 - this.drowsinessScore * 0.3 - this.distractionScore * 0.2, 0, 1),
+      integrationScore: Math.round(
+        clamp(0.95 - this.drowsinessScore * 0.3 - this.distractionScore * 0.2, 0, 1) * 1000
+      ) / 1000,
+      forwardTtcSec: this.distractionScore > 0.5 ? 2.5 : null,
+      riskFusionState: this.drowsinessScore > 0.6 ? 'elevated' : 'normal',
     };
 
     return {
@@ -382,21 +421,68 @@ export class DummyDmsReceiver implements DmsTelemetryReceiver {
     };
   }
 
-  private mapDriverState(): string {
+  private mapDriverStates(): {
+    overall: DriverStateOutput['overall'];
+    drowsinessState: DriverStateOutput['drowsinessState'];
+    distractionState: DriverStateOutput['distractionState'];
+    recommendedAction: DriverStateOutput['recommendedAction'];
+  } {
+    let overall: DriverStateOutput['overall'] = 'NORMAL';
+    let drowsinessState: DriverStateOutput['drowsinessState'] = 'NORMAL';
+    let distractionState: DriverStateOutput['distractionState'] = 'NORMAL';
+    let recommendedAction: DriverStateOutput['recommendedAction'] = 'NO_ACTION';
+
+    // Map drowsiness
+    if (this.drowsinessScore > 0.7) {
+      drowsinessState = 'DANGER';
+    } else if (this.drowsinessScore > 0.5) {
+      drowsinessState = 'WARNING';
+    } else if (this.drowsinessScore > 0.3) {
+      drowsinessState = 'MONITOR';
+    }
+
+    // Map distraction
+    if (this.distractionScore > 0.7) {
+      distractionState = 'DANGER';
+    } else if (this.distractionScore > 0.5) {
+      distractionState = 'WARNING';
+    } else if (this.distractionScore > 0.3) {
+      distractionState = 'MONITOR';
+    }
+
+    // Overall is the worst of the two
+    if (drowsinessState === 'DANGER' || distractionState === 'DANGER') {
+      overall = 'DANGER';
+      recommendedAction = 'ADAS_ESCALATION';
+    } else if (drowsinessState === 'WARNING' || distractionState === 'WARNING') {
+      overall = 'WARNING';
+      recommendedAction = 'AUDIO_WARNING';
+    } else if (drowsinessState === 'MONITOR' || distractionState === 'MONITOR') {
+      overall = 'MONITOR';
+      recommendedAction = 'SILENT_MONITOR';
+    } else {
+      overall = 'NORMAL';
+      recommendedAction = 'NO_ACTION';
+    }
+
+    return { overall, drowsinessState, distractionState, recommendedAction };
+  }
+
+  private getPrimaryCause(): string {
     switch (this.internalState) {
       case 'normal':
       case 'recovering':
-        return 'attentive';
+        return 'none';
       case 'getting_drowsy':
-        return 'drowsy';
+        return 'early_drowsiness';
       case 'drowsy':
-        return 'fatigued';
+        return 'severe_drowsiness';
       case 'phone_check':
         return 'phone_use';
       case 'distracted':
-        return 'distracted';
+        return 'gaze_off_road';
       default:
-        return 'attentive';
+        return 'none';
     }
   }
 }

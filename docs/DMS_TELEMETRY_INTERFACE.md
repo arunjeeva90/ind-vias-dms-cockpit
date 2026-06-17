@@ -17,39 +17,41 @@ The IND-VIAS DualSight DMS Cockpit receives telemetry data from the DMS percepti
 | **Direction** | Server sends to Client (push model) |
 | **Recommended Frequency** | 10 Hz (100ms between messages) |
 
-## Message Schema (v1.0.0)
+## Message Schema (v1.0)
 
-Each message is a single JSON object conforming to the `DmsTelemetryMessage` interface. All fields are required unless noted otherwise.
+Each message is a single JSON object conforming to the `DmsTelemetryMessage` interface. All fields are required unless noted otherwise. All score values use 0.0 to 1.0 range unless explicitly named as ms, deg, sec, or kph.
 
 ### Full JSON Example
 
 ```json
 {
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.0",
   "source": "python-poc-sender",
   "timestampMs": 1718400000000,
   "frameId": 42,
   "fps": 10,
   "connection": {
-    "latencyMs": 8.5,
-    "droppedFrames": 0,
-    "uptime": 120.3
+    "pipelineMode": "LIVE",
+    "cameraHealth": "OK",
+    "trackingStatus": "LOCKED"
   },
   "driverState": {
-    "primary": "attentive",
-    "secondary": null,
-    "confidence": 0.92
+    "overall": "NORMAL",
+    "drowsinessState": "NORMAL",
+    "distractionState": "NORMAL",
+    "availabilityState": "AVAILABLE",
+    "confidenceState": "HIGH",
+    "primaryCause": "none",
+    "secondaryCause": "",
+    "recommendedAction": "NO_ACTION"
   },
   "scores": {
+    "attention": 0.91,
     "drowsiness": 0.12,
     "distraction": 0.05,
-    "fatigue": 0.08,
-    "alertness": 0.91,
-    "perclos": 0.03,
-    "blinkRate": 0.35,
-    "blinkDurationMs": 0.15,
-    "yawnCount": 0.0,
-    "phoneConfidence": 0.02
+    "availability": 0.88,
+    "dmsConfidence": 0.95,
+    "cameraQuality": 0.92
   },
   "headPose": {
     "yawDeg": -5.2,
@@ -59,34 +61,42 @@ Each message is a single JSON object conforming to the `DmsTelemetryMessage` int
   "gaze": {
     "x": 0.52,
     "y": 0.48,
+    "zone": "forward",
     "onRoad": true,
-    "offRoadDurationMs": 0
+    "eyesOffRoadMs": 0,
+    "confidence": 0.95
   },
   "eyes": {
+    "leftOpen": true,
+    "rightOpen": true,
     "leftOpenness": 0.85,
     "rightOpenness": 0.87,
-    "leftVisible": true,
-    "rightVisible": true
+    "blinkRatePerMin": 15.2,
+    "blinkDurationMs": 150,
+    "perclos5s": 0.03,
+    "perclos60s": 0.05
   },
   "behaviour": {
-    "seatbeltWorn": true,
-    "seatbeltConfidence": 0.98,
+    "seatbeltFastened": true,
     "phoneDetected": false,
-    "phoneHandPosition": "none",
-    "smokingDetected": false
+    "phoneConfidence": 0.02,
+    "smokingDetected": false,
+    "yawnDetected": false,
+    "occlusionDetected": false,
+    "talkingDetected": false,
+    "headDownDetected": false
   },
   "vehicle": {
     "speedKph": 85.3,
     "steeringAngleDeg": -2.1,
-    "brakePressure": 0.0,
-    "turnSignalActive": false
+    "indicator": "OFF",
+    "gear": "D"
   },
   "adasFusion": {
     "ready": true,
-    "laneKeepAssist": true,
-    "collisionWarning": false,
-    "speedAdaptation": false,
-    "integrationScore": 0.82
+    "integrationScore": 0.82,
+    "forwardTtcSec": null,
+    "riskFusionState": "normal"
   }
 }
 ```
@@ -97,7 +107,7 @@ Each message is a single JSON object conforming to the `DmsTelemetryMessage` int
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `schemaVersion` | string | Semantic version of the contract (currently `"1.0.0"`) |
+| `schemaVersion` | string | Schema version (currently `"1.0"`) |
 | `source` | string | Identifier for the telemetry source (e.g., `"python-poc-sender"`, `"dms-pipeline-v2"`) |
 | `timestampMs` | number | Unix timestamp in milliseconds when the frame was processed |
 | `frameId` | number | Monotonically incrementing integer frame counter |
@@ -105,39 +115,41 @@ Each message is a single JSON object conforming to the `DmsTelemetryMessage` int
 
 ### connection
 
-Connection health metrics between the DMS pipeline and the cockpit.
+Pipeline connection and health status.
 
-| Field | Type | Unit | Description |
-|-------|------|------|-------------|
-| `latencyMs` | number | milliseconds | Round-trip latency of the WebSocket connection |
-| `droppedFrames` | number | count | Cumulative number of frames dropped since start |
-| `uptime` | number | seconds | Time elapsed since the sender started |
+| Field | Type | Values | Description |
+|-------|------|--------|-------------|
+| `pipelineMode` | string | `"DUMMY"`, `"LIVE"`, `"REPLAY"` | Current pipeline operating mode |
+| `cameraHealth` | string | `"OK"`, `"DEGRADED"`, `"FAILED"` | Camera hardware health status |
+| `trackingStatus` | string | `"LOCKED"`, `"SEARCHING"`, `"LOST"` | Face/head tracking lock status |
 
 ### driverState
 
-The classified driver attention state.
+The classified driver state output with severity levels.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `primary` | string | One of: `"attentive"`, `"drowsy"`, `"fatigued"`, `"distracted"`, `"phone_use"` |
-| `secondary` | string \| null | Optional secondary state (reserved for future use) |
-| `confidence` | number | Confidence in the classification (0.0 to 1.0) |
+| Field | Type | Values | Description |
+|-------|------|--------|-------------|
+| `overall` | string | `"NORMAL"`, `"MONITOR"`, `"WARNING"`, `"DANGER"`, `"DEGRADED"` | Overall driver state severity |
+| `drowsinessState` | string | `"NORMAL"`, `"MONITOR"`, `"WARNING"`, `"DANGER"` | Drowsiness severity level |
+| `distractionState` | string | `"NORMAL"`, `"MONITOR"`, `"WARNING"`, `"DANGER"` | Distraction severity level |
+| `availabilityState` | string | `"AVAILABLE"`, `"LIMITED"`, `"UNAVAILABLE"` | Driver availability for takeover |
+| `confidenceState` | string | `"HIGH"`, `"MEDIUM"`, `"LOW"`, `"DEGRADED"` | Confidence in the classification |
+| `primaryCause` | string | - | Primary cause of the current state (e.g., `"none"`, `"drowsiness"`, `"phone_use"`) |
+| `secondaryCause` | string | - | Secondary contributing cause |
+| `recommendedAction` | string | `"NO_ACTION"`, `"SILENT_MONITOR"`, `"VISUAL_WARNING"`, `"AUDIO_WARNING"`, `"HAPTIC_WARNING"`, `"ADAS_ESCALATION"` | Recommended system response |
 
 ### scores
 
-Continuous metric scores from the DMS algorithms. All ratio-based scores are normalized to the **0.0 to 1.0** range.
+Continuous metric scores from the DMS algorithms. All values normalized to **0.0 to 1.0** range.
 
 | Field | Type | Range | Description |
 |-------|------|-------|-------------|
+| `attention` | number | 0.0 - 1.0 | Overall attention score |
 | `drowsiness` | number | 0.0 - 1.0 | Composite drowsiness score |
 | `distraction` | number | 0.0 - 1.0 | Composite distraction score |
-| `fatigue` | number | 0.0 - 1.0 | Long-term fatigue accumulation |
-| `alertness` | number | 0.0 - 1.0 | Overall alertness level (inverse of drowsiness + distraction) |
-| `perclos` | number | 0.0 - 1.0 | Percentage of eye closure over time |
-| `blinkRate` | number | 0.0 - 1.0 | Normalized blink frequency |
-| `blinkDurationMs` | number | 0.0 - 1.0 | Normalized average blink duration |
-| `yawnCount` | number | 0.0 - 1.0 | Normalized yawn frequency |
-| `phoneConfidence` | number | 0.0 - 1.0 | Confidence of phone usage detection |
+| `availability` | number | 0.0 - 1.0 | Driver availability score |
+| `dmsConfidence` | number | 0.0 - 1.0 | Overall DMS system confidence |
+| `cameraQuality` | number | 0.0 - 1.0 | Camera image quality score |
 
 ### headPose
 
@@ -159,8 +171,10 @@ Driver gaze estimation on the windshield plane.
 |-------|------|-------|-------------|
 | `x` | number | 0.0 - 1.0 | Horizontal gaze position (0 = left edge, 1 = right edge) |
 | `y` | number | 0.0 - 1.0 | Vertical gaze position (0 = top edge, 1 = bottom edge) |
+| `zone` | string | - | Named gaze zone (e.g., `"forward"`, `"left_mirror"`, `"right_mirror"`, `"off_road"`) |
 | `onRoad` | boolean | - | Whether the driver's gaze is directed at the road |
-| `offRoadDurationMs` | number | milliseconds | Continuous time the gaze has been off-road |
+| `eyesOffRoadMs` | number | milliseconds | Continuous time eyes have been off-road |
+| `confidence` | number | 0.0 - 1.0 | Confidence in gaze estimation |
 
 ### eyes
 
@@ -168,33 +182,40 @@ Individual eye metrics from the DMS camera.
 
 | Field | Type | Range | Description |
 |-------|------|-------|-------------|
+| `leftOpen` | boolean | - | Whether the left eye is open |
+| `rightOpen` | boolean | - | Whether the right eye is open |
 | `leftOpenness` | number | 0.0 - 1.0 | Left eye aperture (0 = closed, 1 = fully open) |
 | `rightOpenness` | number | 0.0 - 1.0 | Right eye aperture (0 = closed, 1 = fully open) |
-| `leftVisible` | boolean | - | Whether the left eye is visible to the camera |
-| `rightVisible` | boolean | - | Whether the right eye is visible to the camera |
+| `blinkRatePerMin` | number | blinks/min | Blink frequency in blinks per minute |
+| `blinkDurationMs` | number | milliseconds | Average blink duration |
+| `perclos5s` | number | 0.0 - 1.0 | PERCLOS over the last 5 seconds |
+| `perclos60s` | number | 0.0 - 1.0 | PERCLOS over the last 60 seconds |
 
 ### behaviour
 
 Non-driving behaviour detection results.
 
-| Field | Type | Range | Description |
-|-------|------|-------|-------------|
-| `seatbeltWorn` | boolean | - | Whether the seatbelt is detected as worn |
-| `seatbeltConfidence` | number | 0.0 - 1.0 | Confidence in seatbelt detection |
-| `phoneDetected` | boolean | - | Whether a phone is detected in the driver's hand |
-| `phoneHandPosition` | string | - | Hand holding the phone: `"left"`, `"right"`, `"both"`, or `"none"` |
-| `smokingDetected` | boolean | - | Whether smoking behaviour is detected |
+| Field | Type | Description |
+|-------|------|-------------|
+| `seatbeltFastened` | boolean | Whether the seatbelt is detected as fastened |
+| `phoneDetected` | boolean | Whether a phone is detected in the driver's hand |
+| `phoneConfidence` | number | Confidence in phone detection (0.0 - 1.0) |
+| `smokingDetected` | boolean | Whether smoking behaviour is detected |
+| `yawnDetected` | boolean | Whether a yawn is currently detected |
+| `occlusionDetected` | boolean | Whether face occlusion is detected |
+| `talkingDetected` | boolean | Whether the driver appears to be talking |
+| `headDownDetected` | boolean | Whether head-down posture is detected |
 
 ### vehicle
 
-Vehicle state data (from CAN bus or simulation).
+Vehicle state data (from CAN bus or simulation). Nullable fields may be `null` when data is unavailable.
 
 | Field | Type | Unit | Description |
 |-------|------|------|-------------|
-| `speedKph` | number | km/h | Current vehicle speed |
-| `steeringAngleDeg` | number | degrees | Current steering wheel angle |
-| `brakePressure` | number | 0.0 - 1.0 | Normalized brake pedal pressure |
-| `turnSignalActive` | boolean | - | Whether a turn signal is currently active |
+| `speedKph` | number \| null | km/h | Current vehicle speed |
+| `steeringAngleDeg` | number \| null | degrees | Current steering wheel angle |
+| `indicator` | string \| null | - | Turn indicator state: `"OFF"`, `"LEFT"`, `"RIGHT"`, `"HAZARD"`, or `null` |
+| `gear` | string \| null | - | Current gear (e.g., `"D"`, `"R"`, `"P"`, `"N"`) or `null` |
 
 ### adasFusion
 
@@ -203,10 +224,9 @@ ADAS (Advanced Driver Assistance Systems) integration status.
 | Field | Type | Range | Description |
 |-------|------|-------|-------------|
 | `ready` | boolean | - | Whether the ADAS fusion system is ready |
-| `laneKeepAssist` | boolean | - | Lane keep assist active |
-| `collisionWarning` | boolean | - | Forward collision warning active |
-| `speedAdaptation` | boolean | - | Adaptive speed control active |
 | `integrationScore` | number | 0.0 - 1.0 | Overall ADAS-DMS integration quality |
+| `forwardTtcSec` | number \| null | seconds | Time-to-collision estimate (null when not applicable) |
+| `riskFusionState` | string | - | Risk fusion assessment (e.g., `"normal"`, `"elevated"`, `"critical"`) |
 
 ## Running Modes
 
@@ -254,7 +274,7 @@ To integrate your real DMS perception pipeline, your system must:
 
 3. **Include all required fields** - the frontend validates incoming messages and will discard malformed ones.
 
-4. **Set the `schemaVersion`** to `"1.0.0"` to ensure compatibility.
+4. **Set the `schemaVersion`** to `"1.0"` to ensure compatibility.
 
 5. **Use a descriptive `source`** identifier (e.g., `"ind-vias-dms-v2"`) for debugging.
 
@@ -264,19 +284,27 @@ Example integration pseudocode:
 import websockets
 import json
 import asyncio
+import time
 
 async def serve_telemetry(websocket, path):
+    frame_id = 0
     while True:
         frame = your_dms_pipeline.get_latest_frame()
         message = {
-            "schemaVersion": "1.0.0",
+            "schemaVersion": "1.0",
             "source": "your-dms-pipeline",
             "timestampMs": int(time.time() * 1000),
-            "frameId": frame.id,
+            "frameId": frame_id,
             "fps": 10,
+            "connection": {
+                "pipelineMode": "LIVE",
+                "cameraHealth": "OK",
+                "trackingStatus": "LOCKED"
+            },
             # ... all other fields from your pipeline
         }
         await websocket.send(json.dumps(message))
+        frame_id += 1
         await asyncio.sleep(0.1)  # 10Hz
 
 asyncio.run(websockets.serve(serve_telemetry, "localhost", 8765))
@@ -319,7 +347,7 @@ npm run dev
 
 3. **Verify gaze coordinates:** Gaze x and y must be normalized to 0.0-1.0.
 
-4. **Check `schemaVersion`:** Must be `"1.0.0"` for the current dashboard version.
+4. **Check `schemaVersion`:** Must be `"1.0"` for the current dashboard version.
 
 ### High latency or dropped frames
 

@@ -3,32 +3,42 @@
  *
  * Defines the wire-format for messages received from the DMS telemetry source.
  * This is the canonical contract between the DMS processing pipeline and the cockpit UI.
+ *
+ * All score values use 0.0 to 1.0 range unless explicitly named as ms, deg, sec, or kph.
  */
 
-export const DMS_SCHEMA_VERSION = '1.0.0';
+export const DMS_SCHEMA_VERSION = '1.0';
 
 export interface ConnectionStatus {
-  latencyMs: number;
-  droppedFrames: number;
-  uptime: number;
+  pipelineMode: 'DUMMY' | 'LIVE' | 'REPLAY';
+  cameraHealth: 'OK' | 'DEGRADED' | 'FAILED';
+  trackingStatus: 'LOCKED' | 'SEARCHING' | 'LOST';
 }
 
 export interface DriverStateOutput {
-  primary: string;
-  secondary: string | null;
-  confidence: number;
+  overall: 'NORMAL' | 'MONITOR' | 'WARNING' | 'DANGER' | 'DEGRADED';
+  drowsinessState: 'NORMAL' | 'MONITOR' | 'WARNING' | 'DANGER';
+  distractionState: 'NORMAL' | 'MONITOR' | 'WARNING' | 'DANGER';
+  availabilityState: 'AVAILABLE' | 'LIMITED' | 'UNAVAILABLE';
+  confidenceState: 'HIGH' | 'MEDIUM' | 'LOW' | 'DEGRADED';
+  primaryCause: string;
+  secondaryCause: string;
+  recommendedAction:
+    | 'NO_ACTION'
+    | 'SILENT_MONITOR'
+    | 'VISUAL_WARNING'
+    | 'AUDIO_WARNING'
+    | 'HAPTIC_WARNING'
+    | 'ADAS_ESCALATION';
 }
 
 export interface DmsScores {
+  attention: number;
   drowsiness: number;
   distraction: number;
-  fatigue: number;
-  alertness: number;
-  perclos: number;
-  blinkRate: number;
-  blinkDurationMs: number;
-  yawnCount: number;
-  phoneConfidence: number;
+  availability: number;
+  dmsConfidence: number;
+  cameraQuality: number;
 }
 
 export interface HeadPoseTelemetry {
@@ -40,45 +50,53 @@ export interface HeadPoseTelemetry {
 export interface GazeTelemetry {
   x: number;
   y: number;
+  zone: string;
   onRoad: boolean;
-  offRoadDurationMs: number;
+  eyesOffRoadMs: number;
+  confidence: number;
 }
 
 export interface EyeTelemetry {
+  leftOpen: boolean;
+  rightOpen: boolean;
   leftOpenness: number;
   rightOpenness: number;
-  leftVisible: boolean;
-  rightVisible: boolean;
+  blinkRatePerMin: number;
+  blinkDurationMs: number;
+  perclos5s: number;
+  perclos60s: number;
 }
 
 export interface BehaviourTelemetry {
-  seatbeltWorn: boolean;
-  seatbeltConfidence: number;
+  seatbeltFastened: boolean;
   phoneDetected: boolean;
-  phoneHandPosition: string;
+  phoneConfidence: number;
   smokingDetected: boolean;
+  yawnDetected: boolean;
+  occlusionDetected: boolean;
+  talkingDetected: boolean;
+  headDownDetected: boolean;
 }
 
 export interface VehicleTelemetry {
-  speedKph: number;
-  steeringAngleDeg: number;
-  brakePressure: number;
-  turnSignalActive: boolean;
+  speedKph: number | null;
+  steeringAngleDeg: number | null;
+  indicator: 'OFF' | 'LEFT' | 'RIGHT' | 'HAZARD' | null;
+  gear: string | null;
 }
 
 export interface AdasFusionTelemetry {
   ready: boolean;
-  laneKeepAssist: boolean;
-  collisionWarning: boolean;
-  speedAdaptation: boolean;
   integrationScore: number;
+  forwardTtcSec: number | null;
+  riskFusionState: string;
 }
 
 /**
  * The top-level DMS telemetry message as received over the wire.
  */
 export interface DmsTelemetryMessage {
-  schemaVersion: string;
+  schemaVersion: '1.0';
   source: string;
   timestampMs: number;
   frameId: number;
