@@ -72,33 +72,38 @@ export function useDmsTelemetry(options?: UseDmsTelemetryOptions): UseDmsTelemet
     });
 
     receiverRef.current = receiver;
+    let fallbackUnsubscribe: (() => void) | null = null;
+    let messageReceived = false;
+    let fallbackTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const unsubscribe = receiver.subscribe((message: DmsTelemetryMessage) => {
+      messageReceived = true;
       const telemetry = toDashboardTelemetry(message);
       latestDataRef.current = telemetry;
       dirtyRef.current = true;
     });
 
     // Start the receiver
-    receiver.connect().catch(() => {
-      // If LIVE_WS fails, fallback to DUMMY
-      if (mode === 'LIVE_WS') {
-        const dummyReceiver = createDmsReceiver({ mode: 'DUMMY' });
-        fallbackReceiverRef.current = dummyReceiver;
+    receiver.connect();
 
-        dummyReceiver.subscribe((message: DmsTelemetryMessage) => {
-          const telemetry = toDashboardTelemetry(message);
-          latestDataRef.current = telemetry;
-          dirtyRef.current = true;
-        });
+    // For LIVE_WS mode, if no message is received within 5 seconds,
+    // spin up a DummyDmsReceiver as fallback.
+    if (mode === 'LIVE_WS') {
+      fallbackTimeout = setTimeout(() => {
+        if (!messageReceived) {
+          const dummyReceiver = createDmsReceiver({ mode: 'DUMMY' });
+          fallbackReceiverRef.current = dummyReceiver;
 
-        dummyReceiver.connect().catch(() => {
-          setError('Failed to start dummy fallback receiver');
-        });
-      } else {
-        setError('Failed to connect receiver');
-      }
-    });
+          fallbackUnsubscribe = dummyReceiver.subscribe((message: DmsTelemetryMessage) => {
+            const telemetry = toDashboardTelemetry(message);
+            latestDataRef.current = telemetry;
+            dirtyRef.current = true;
+          });
+
+          dummyReceiver.connect();
+        }
+      }, 5000);
+    }
 
     // Start RAF loop
     rafRef.current = requestAnimationFrame(updateState);
@@ -118,9 +123,16 @@ export function useDmsTelemetry(options?: UseDmsTelemetryOptions): UseDmsTelemet
       unsubscribe();
       receiver.disconnect();
 
+      if (fallbackUnsubscribe) {
+        fallbackUnsubscribe();
+      }
       if (fallbackReceiverRef.current) {
         fallbackReceiverRef.current.disconnect();
         fallbackReceiverRef.current = null;
+      }
+
+      if (fallbackTimeout !== null) {
+        clearTimeout(fallbackTimeout);
       }
 
       if (rafRef.current !== null) {

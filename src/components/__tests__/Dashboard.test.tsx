@@ -2,12 +2,21 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Dashboard } from '../Dashboard';
 
-// Mock the useTelemetry hook
-vi.mock('../../hooks/useTelemetry', () => ({
-  useTelemetry: vi.fn(() => ({
+// Mock the useDmsTelemetry hook
+vi.mock('../../hooks/useDmsTelemetry', () => ({
+  useDmsTelemetry: vi.fn(() => ({
     data: null,
     connected: false,
-    mode: 'dummy',
+    mode: 'DUMMY',
+    receiverStatus: {
+      mode: 'DUMMY',
+      connected: false,
+      lastMessageTimeMs: null,
+      messageCount: 0,
+      error: null,
+      endpoint: null,
+    },
+    error: null,
   })),
 }));
 
@@ -45,10 +54,10 @@ describe('Dashboard', () => {
   });
 
   it('shows LIVE status when connected with data', async () => {
-    const { useTelemetry } = await import('../../hooks/useTelemetry');
-    const mockedUseTelemetry = vi.mocked(useTelemetry);
+    const { useDmsTelemetry } = await import('../../hooks/useDmsTelemetry');
+    const mockedUseDmsTelemetry = vi.mocked(useDmsTelemetry);
 
-    mockedUseTelemetry.mockReturnValue({
+    mockedUseDmsTelemetry.mockReturnValue({
       data: {
         timestamp: Date.now(),
         driverState: 'attentive' as any,
@@ -62,7 +71,16 @@ describe('Dashboard', () => {
         adasFusion: { ready: true, laneKeepAssist: true, collisionWarning: true, speedAdaptation: true, integrationScore: 95 },
       },
       connected: true,
-      mode: 'dummy',
+      mode: 'DUMMY',
+      receiverStatus: {
+        mode: 'DUMMY',
+        connected: true,
+        lastMessageTimeMs: Date.now(),
+        messageCount: 100,
+        error: null,
+        endpoint: null,
+      },
+      error: null,
     });
 
     render(<Dashboard />);

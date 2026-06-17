@@ -90,6 +90,12 @@ export function validateDmsTelemetryMessage(data: unknown): ValidationResult {
   if (typeof scores.dmsConfidence !== 'number') {
     return { valid: false, error: 'scores.dmsConfidence must be a number' };
   }
+  if (typeof scores.availability !== 'number') {
+    return { valid: false, error: 'scores.availability must be a number' };
+  }
+  if (typeof scores.cameraQuality !== 'number') {
+    return { valid: false, error: 'scores.cameraQuality must be a number' };
+  }
 
   // Validate headPose
   if (typeof msg.headPose !== 'object' || msg.headPose === null) {
