@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTelemetry } from '../hooks/useTelemetry';
+import { useDmsTelemetry } from '../hooks/useDmsTelemetry';
 import { StatusBar } from './cockpit/StatusBar';
 import { LeftConsole } from './cockpit/LeftConsole';
 import { CenterVideoPanel } from './cockpit/CenterVideoPanel';
@@ -8,7 +8,7 @@ import { BottomTimeline } from './cockpit/BottomTimeline';
 import { DecisionCard } from './cockpit/DecisionCard';
 
 export const Dashboard: React.FC = () => {
-  const { data, connected, mode } = useTelemetry({ mode: 'dummy' });
+  const { data, connected, mode } = useDmsTelemetry({ mode: 'DUMMY' });
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-dms-dark grid grid-rows-[auto_1fr_auto] relative">

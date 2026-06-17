@@ -1,0 +1,24 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Create the Python PoC WebSocket sender example and all documentation (telemetry interface docs + README update).",
+  "status": "pending",
+  "steps": [
+    "Create tools/dms_ws_sender_example.py - a Python WebSocket server on ws://localhost:8765/dms that sends sample DmsTelemetryMessage at 10Hz. Simulate changing yaw/pitch/roll, gaze, drowsiness, distraction using sin-wave patterns. Use the 'websockets' package. Include instructions at the top as comments: pip install websockets && python tools/dms_ws_sender_example.py",
+    "Create docs/DMS_TELEMETRY_INTERFACE.md with: WebSocket endpoint (ws://localhost:8765/dms), full JSON schema example, field meanings, units, score ranges (0.0-1.0), how to run dummy mode, how to run live PoC sender, how real DMS PoC should publish telemetry, troubleshooting section, expected message frequency (10Hz recommended).",
+    "Update README.md with a new 'Live DMS PoC Integration' section including: Frontend setup (npm install && npm run dev), Python sender setup (pip install websockets && python tools/dms_ws_sender_example.py), WebSocket endpoint (ws://localhost:8765/dms), brief architecture explanation."
+  ],
+  "acceptance_criteria": [
+    "tools/dms_ws_sender_example.py exists and is valid Python using websockets library",
+    "docs/DMS_TELEMETRY_INTERFACE.md exists with complete documentation of the telemetry contract",
+    "README.md contains a 'Live DMS PoC Integration' section with setup instructions",
+    "Python sender simulates realistic DMS telemetry data including head pose, gaze, drowsiness, and distraction variations"
+  ],
+  "verification": [
+    "Verify tools/dms_ws_sender_example.py has valid Python syntax: python3 -c \"import ast; ast.parse(open('tools/dms_ws_sender_example.py').read())\"",
+    "Verify docs/DMS_TELEMETRY_INTERFACE.md exists and contains key sections",
+    "Verify README.md contains the new integration section"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

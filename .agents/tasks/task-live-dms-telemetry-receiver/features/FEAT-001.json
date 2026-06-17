@@ -1,0 +1,39 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Create the complete DMS telemetry receiver architecture: versioned contract types, receiver interface, WebSocket receiver, Dummy receiver, Replay receiver, factory, validation, adapter, and updated hook. This is a single coherent unit since all pieces depend on each other and together form the integration layer.",
+  "status": "in_progress",
+  "steps": [
+    "Create src/types/dmsTelemetryContract.ts with all interfaces: DmsTelemetryMessage (schemaVersion, source, timestampMs, frameId, fps, connection, driverState, scores, headPose, gaze, eyes, behaviour, vehicle, adasFusion), ConnectionStatus, DriverStateOutput, DmsScores, HeadPoseTelemetry, GazeTelemetry, EyeTelemetry, BehaviourTelemetry, VehicleTelemetry, AdasFusionTelemetry. Use exact field names and types from the user specification. All scores 0.0-1.0 unless explicitly named as ms/deg/sec/kph.",
+    "Create src/services/receivers/DmsTelemetryReceiver.ts with the DmsTelemetryReceiver interface (connect(): Promise<void>, disconnect(): void, isConnected(): boolean, subscribe(callback): unsubscribe function, getStatus(): ReceiverStatus) and the ReceiverStatus type (mode, connected, lastMessageTimeMs, messageCount, error, endpoint).",
+    "Create src/services/receivers/WebSocketDmsReceiver.ts implementing DmsTelemetryReceiver. Default endpoint ws://localhost:8765/dms. JSON parse incoming messages, validate with validateDmsTelemetryMessage, auto-reconnect with exponential backoff (1s/2s/4s/8s up to 30s), keep last valid message, handle malformed messages without crashing, track messageCount and lastMessageTimeMs.",
+    "Create src/services/receivers/DummyDmsReceiver.ts implementing DmsTelemetryReceiver. Reuse the 6-state simulation machine logic from src/services/dummyTelemetry.ts (normal/getting_drowsy/drowsy/recovering/phone_check/distracted) with lerp transitions. Emit DmsTelemetryMessage at 10Hz. Map internal states to the new contract format. Mode should be DUMMY.",
+    "Create src/services/receivers/ReplayDmsReceiver.ts implementing DmsTelemetryReceiver. Accept array of DmsTelemetryMessage, replay at configurable speed (default 1x), loop or stop at end. Basic implementation is fine.",
+    "Create src/services/receivers/createDmsReceiver.ts as factory. Modes: DUMMY, LIVE_WS, REPLAY. Default behavior: attempt LIVE_WS if configured, fallback to DUMMY if WebSocket fails. Use VITE_DMS_WS_URL env var (default ws://localhost:8765/dms).",
+    "Create src/services/validation/validateDmsTelemetryMessage.ts. Manual TypeScript runtime checks - no external dependencies. Check required top-level fields (schemaVersion, timestampMs, driverState, headPose, gaze, scores). Return { valid: true } or { valid: false, error: string }.",
+    "Create src/services/adapters/dmsTelemetryAdapter.ts with function toDashboardTelemetry(message: DmsTelemetryMessage): DMSTelemetry. Map new contract fields to existing DMSTelemetry type used by UI. Ensure headPose yaw/pitch/roll, gaze x/y/onRoad, confidence.faceDetected/eyesVisible are properly mapped.",
+    "Create src/hooks/useDmsTelemetry.ts using the receiver factory. Expose: data (DMSTelemetry | null), receiverStatus (ReceiverStatus), connected (boolean), mode (string), error (string | null). Use RAF-based update pattern from existing useTelemetry.ts. Falls back to dummy if live fails.",
+    "Update src/components/Dashboard.tsx to import and use useDmsTelemetry instead of useTelemetry. Keep the same destructured interface so all child components continue working unchanged. The hook should return data in DMSTelemetry format via the adapter.",
+    "Create an index barrel file src/services/receivers/index.ts exporting all receiver types and factory."
+  ],
+  "acceptance_criteria": [
+    "src/types/dmsTelemetryContract.ts exists with all specified interfaces matching the exact field names and types from the specification",
+    "src/services/receivers/DmsTelemetryReceiver.ts defines the interface and ReceiverStatus type",
+    "src/services/receivers/WebSocketDmsReceiver.ts implements auto-reconnect WebSocket receiver with validation",
+    "src/services/receivers/DummyDmsReceiver.ts reuses the 6-state machine logic and emits at 10Hz",
+    "src/services/receivers/ReplayDmsReceiver.ts provides basic replay capability",
+    "src/services/receivers/createDmsReceiver.ts provides factory with DUMMY/LIVE_WS/REPLAY modes and fallback",
+    "src/services/validation/validateDmsTelemetryMessage.ts validates messages without external deps",
+    "src/services/adapters/dmsTelemetryAdapter.ts maps DmsTelemetryMessage to DMSTelemetry",
+    "src/hooks/useDmsTelemetry.ts provides the hook with fallback behavior",
+    "Dashboard.tsx uses the new hook but UI layout remains unchanged",
+    "TypeScript compiles without errors (npx tsc --noEmit)"
+  ],
+  "verification": [
+    "Run npx tsc --noEmit from the project root to verify all TypeScript types are correct",
+    "Verify all new files exist in their specified paths",
+    "Verify Dashboard.tsx imports useDmsTelemetry and passes data to child components unchanged"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

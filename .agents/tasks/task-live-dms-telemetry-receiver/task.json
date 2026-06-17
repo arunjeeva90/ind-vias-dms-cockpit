@@ -1,0 +1,7 @@
+{
+  "task_id": "task-live-dms-telemetry-receiver",
+  "task_description": "Create production-style DMS telemetry receiver architecture with versioned contract, WebSocket/Dummy/Replay receivers, validation, adapter to existing UI types, updated hook, Python PoC sender, and documentation. Dashboard must continue working in dummy mode without changes to visual layout.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001", "FEAT-002"],
+  "blocked_reason": null
+}

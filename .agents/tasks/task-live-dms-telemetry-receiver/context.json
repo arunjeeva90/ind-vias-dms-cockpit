@@ -1,0 +1,28 @@
+{
+  "project_type": "React 18.3 SPA with Three.js 3D head visualization, DMS telemetry dashboard",
+  "language": "TypeScript 5.6",
+  "build_system": "Vite 5.4 with npm scripts",
+  "test_framework": "Vitest with @testing-library/react, jsdom environment, setup in src/tests/setup.ts",
+  "build_command": "npx tsc --noEmit (type checking only - npm registry blocked so no npm install possible)",
+  "test_command": "npx vitest run (if node_modules present)",
+  "verification_instructions": "Run npx tsc --noEmit to verify no TypeScript errors. Cannot run npm install due to INTEGRATIONS_ONLY network.",
+  "snapshot_or_generated_files": null,
+  "setup_instructions": "npm install && npm run dev (port 3000). Cannot install in current sandbox due to network restrictions.",
+  "environment_constraints": "INTEGRATIONS_ONLY network mode - npm registry is blocked. Cannot run npm install, npm run dev, or npm test. Must rely on TypeScript AST/type-checking for validation. node_modules may already be present from prior work.",
+  "contribution_requirements": "Work on feature/live-dms-telemetry-receiver branch. Do not modify UI layout. Keep existing dummy telemetry working. Push to feature branch only.",
+  "key_patterns": "TelemetryProvider interface pattern in src/services/telemetry.ts. Factory function createTelemetryProvider(). Hook useTelemetry() with RAF-based updates and connection polling. Dashboard expects DMSTelemetry type. RightHeadPanel expects headPose.yaw/pitch/roll, gaze.x/y/onRoad, confidence.eyesVisible/faceDetected. DummyTelemetryProvider uses 6-state machine (normal/getting_drowsy/drowsy/recovering/phone_check/distracted) with lerp transitions at 10Hz.",
+  "relevant_files": [
+    "src/types/dms.ts",
+    "src/services/telemetry.ts",
+    "src/services/dummyTelemetry.ts",
+    "src/services/websocketTelemetry.ts",
+    "src/hooks/useTelemetry.ts",
+    "src/components/Dashboard.tsx",
+    "src/components/cockpit/RightHeadPanel.tsx",
+    "src/components/cockpit/StatusBar.tsx",
+    "src/utils/driverStateMapping.ts",
+    "package.json",
+    "tsconfig.json"
+  ],
+  "directory_structure": "src/types/ (type definitions), src/services/ (telemetry providers/factory), src/hooks/ (React hooks), src/components/ (UI components), src/components/cockpit/ (cockpit layout panels), src/utils/ (utility functions), src/components/__tests__/ and src/services/__tests__/ (tests)"
+}
