@@ -1,76 +1,55 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { DMSTelemetry } from '../types/dms';
-import { TelemetryProvider, createTelemetryProvider } from '../services/telemetry';
+import { createTelemetryProvider, TelemetryMode } from '../services/telemetry';
+import { SocketState, WebSocketTelemetryProvider } from '../services/websocketTelemetry';
+import { buildVicharakConfig } from '../config/vicharak';
 
-export type TelemetryMode = 'dummy' | 'websocket';
-
-interface UseTelemetryOptions {
-  mode?: TelemetryMode;
-  url?: string;
+export const TELEMETRY_STALE_MS = 2000;
+export function isTelemetryStale(lastReceivedAt: number | null, now = Date.now()): boolean {
+  return lastReceivedAt !== null && now - lastReceivedAt >= TELEMETRY_STALE_MS;
 }
 
-interface UseTelemetryResult {
-  data: DMSTelemetry | null;
-  connected: boolean;
-  mode: string;
-}
-
-export function useTelemetry(options?: UseTelemetryOptions): UseTelemetryResult {
-  const mode = options?.mode ?? 'dummy';
-  const url = options?.url ?? 'ws://localhost:8080/dms';
-
+export function useTelemetry(options?: { mode?: TelemetryMode; url?: string }) {
+  const config = buildVicharakConfig();
+  const mode = options?.mode ?? config.mode;
+  const url = options?.url ?? config.telemetryUrl;
   const [data, setData] = useState<DMSTelemetry | null>(null);
   const [connected, setConnected] = useState(false);
-  const providerRef = useRef<TelemetryProvider | null>(null);
-  const rafRef = useRef<number | null>(null);
-  const latestDataRef = useRef<DMSTelemetry | null>(null);
-  const dirtyRef = useRef(false);
-
-  const updateState = useCallback(() => {
-    if (dirtyRef.current && latestDataRef.current) {
-      setData(latestDataRef.current);
-      dirtyRef.current = false;
-    }
-    rafRef.current = requestAnimationFrame(updateState);
-  }, []);
+  const [state, setState] = useState<SocketState>('Connecting');
+  const [stale, setStale] = useState(false);
 
   useEffect(() => {
+    let active = true;
+    let lastReceivedAt: number | null = null;
     const provider = createTelemetryProvider(mode, { url });
-
-    providerRef.current = provider;
-
-    provider.onData((telemetry) => {
-      latestDataRef.current = telemetry;
-      dirtyRef.current = true;
+    setData(null);
+    setStale(false);
+    setConnected(false);
+    setState('Connecting');
+    if (provider instanceof WebSocketTelemetryProvider) {
+      provider.onStatus(next => {
+        if (!active) return;
+        setState(next);
+        setConnected(provider.isConnected());
+      });
+    }
+    provider.onData(telemetry => {
+      if (!active) return;
+      lastReceivedAt = Date.now();
+      setData(telemetry);
+      setStale(false);
+      setConnected(provider.isConnected());
     });
-
     provider.connect();
-
-    // Let the status poll be the source of truth for connected state
-    // instead of setting connected=true immediately after connect()
-
-    // Start animation frame loop for smooth UI updates
-    rafRef.current = requestAnimationFrame(updateState);
-
-    // Poll connection status
-    const statusInterval = setInterval(() => {
-      if (providerRef.current) {
-        setConnected(providerRef.current.isConnected());
-      }
-    }, 1000);
-
+    const timer = setInterval(() => {
+      setStale(mode === 'websocket' && isTelemetryStale(lastReceivedAt));
+    }, 100);
     return () => {
+      active = false;
+      clearInterval(timer);
       provider.disconnect();
-      setConnected(false);
-
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-      }
-
-      clearInterval(statusInterval);
-      providerRef.current = null;
     };
-  }, [mode, url, updateState]);
+  }, [mode, url]);
 
-  return { data, connected, mode };
+  return { data, connected, mode, state, stale };
 }

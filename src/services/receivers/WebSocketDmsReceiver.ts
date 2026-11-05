@@ -1,3 +1,4 @@
+import { buildVicharakConfig } from '../../config/vicharak';
 import { DmsTelemetryMessage } from '../../types/dmsTelemetryContract';
 import { validateDmsTelemetryMessage } from '../validation/validateDmsTelemetryMessage';
 import {
@@ -6,7 +7,7 @@ import {
   UnsubscribeFn,
 } from './DmsTelemetryReceiver';
 
-const DEFAULT_ENDPOINT = 'ws://localhost:8765/dms';
+const DEFAULT_ENDPOINT = buildVicharakConfig().telemetryUrl;
 const MAX_RECONNECT_DELAY_MS = 30000;
 
 export interface WebSocketDmsReceiverOptions {

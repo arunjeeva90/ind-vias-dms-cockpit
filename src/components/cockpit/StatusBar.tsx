@@ -7,9 +7,11 @@ interface StatusBarProps {
   data: DMSTelemetry | null;
   connected: boolean;
   mode: string;
+  connectionState?: string;
+  videoUnavailable?: boolean;
 }
 
-export const StatusBar: React.FC<StatusBarProps> = ({ data, connected, mode }) => {
+export const StatusBar: React.FC<StatusBarProps> = ({ data, connected, mode, connectionState, videoUnavailable }) => {
   const fps = data ? 30 : 0; // Nominal target frame rate
   const overallState = data ? mapDriverState(data.driverState, data.confidence.overall) : undefined;
   const cameraHealth = data ? getCameraHealth(data.confidence) : 'NO FACE';
@@ -82,6 +84,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ data, connected, mode }) =
         </span>
       </div>
 
+      {videoUnavailable && <span role="status" className="text-xs text-dms-warning font-bold">Video unavailable</span>}
       {/* Spacer */}
       <div className="flex-1" />
 
@@ -102,7 +105,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ data, connected, mode }) =
         )}
         <span className={`w-2 h-2 rounded-full ${connected ? 'bg-dms-success animate-pulse' : 'bg-dms-danger'}`} />
         <span className="text-[10px] text-slate-500">
-          {connected ? 'ONLINE' : 'OFFLINE'}
+          {connectionState ?? (connected ? 'Live' : 'Disconnected')}
         </span>
       </div>
     </div>

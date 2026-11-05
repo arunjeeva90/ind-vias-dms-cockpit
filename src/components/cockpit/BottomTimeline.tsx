@@ -119,7 +119,7 @@ export const BottomTimeline: React.FC<BottomTimelineProps> = ({ data }) => {
 
     // Track alerts
     if (data.driverState !== DriverState.ATTENTIVE) {
-      const alertType = data.driverState === DriverState.DROWSY || data.driverState === DriverState.DISTRACTED ? 'warning' : 'danger';
+      const alertType: AlertMarker['type'] = data.driverState === DriverState.DROWSY || data.driverState === DriverState.DISTRACTED ? 'warning' : 'danger';
       // Only add alert if different from last one or if some time passed
       const lastAlert = alertsRef.current[alertsRef.current.length - 1];
       if (!lastAlert || counterRef.current - lastAlert.time > 5) {

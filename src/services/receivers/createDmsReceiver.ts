@@ -1,10 +1,11 @@
+import { buildVicharakConfig } from '../../config/vicharak';
 import { DmsTelemetryMessage } from '../../types/dmsTelemetryContract';
 import { DmsTelemetryReceiver, ReceiverMode } from './DmsTelemetryReceiver';
 import { DummyDmsReceiver } from './DummyDmsReceiver';
 import { WebSocketDmsReceiver } from './WebSocketDmsReceiver';
 import { ReplayDmsReceiver } from './ReplayDmsReceiver';
 
-const DEFAULT_WS_URL = 'ws://localhost:8765/dms';
+const DEFAULT_WS_URL = buildVicharakConfig().telemetryUrl;
 
 function getEnvWsUrl(): string | undefined {
   return import.meta.env.VITE_DMS_WS_URL as string | undefined;

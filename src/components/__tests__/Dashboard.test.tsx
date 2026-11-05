@@ -1,89 +1,47 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Dashboard } from '../Dashboard';
-
-// Mock the useDmsTelemetry hook
-vi.mock('../../hooks/useDmsTelemetry', () => ({
-  useDmsTelemetry: vi.fn(() => ({
-    data: null,
-    connected: false,
-    mode: 'DUMMY',
-    receiverStatus: {
-      mode: 'DUMMY',
-      connected: false,
-      lastMessageTimeMs: null,
-      messageCount: 0,
-      error: null,
-      endpoint: null,
-    },
-    error: null,
-  })),
-}));
-
-// Mock lucide-react to avoid SVG rendering issues in tests
-vi.mock('lucide-react', () => ({
-  Eye: () => <span data-testid="icon-eye">Eye</span>,
-  AlertTriangle: () => <span data-testid="icon-alert">AlertTriangle</span>,
-  Phone: () => <span data-testid="icon-phone">Phone</span>,
-  Moon: () => <span data-testid="icon-moon">Moon</span>,
-  Activity: () => <span data-testid="icon-activity">Activity</span>,
-  Shield: () => <span data-testid="icon-shield">Shield</span>,
-  Wifi: () => <span data-testid="icon-wifi">Wifi</span>,
-  WifiOff: () => <span data-testid="icon-wifi-off">WifiOff</span>,
-}));
-
+import { useTelemetry } from '../../hooks/useTelemetry';
+import { telemetryFixture } from '../../tests/telemetryFixture';
+vi.mock('../../hooks/useTelemetry', () => ({ useTelemetry: vi.fn() }));
+vi.mock('../../hooks/useBoardHealth', () => ({ useBoardHealth: () => ({ health: { version: 1, videoFrameCount: 100, telemetryFrameCount: 200 }, available: true }) }));
+vi.mock('../cockpit/RightHeadPanel', () => ({ RightHeadPanel: () => <div>3D head</div> }));
+vi.mock('../cockpit/BottomTimeline', () => ({ BottomTimeline: () => <div>Timeline</div> }));
 describe('Dashboard', () => {
-  it('renders without crashing', () => {
+  beforeEach(() => {
+    vi.stubEnv('VITE_TELEMETRY_MODE', 'websocket');
+    vi.mocked(useTelemetry).mockReturnValue({ data: telemetryFixture(), connected: true, mode: 'websocket', state: 'Live', stale: false });
+  });
+  afterEach(() => { cleanup(); vi.unstubAllEnvs(); });
+  it('preserves the cards and 3D head around real video without a simulated cabin', () => {
     const { container } = render(<Dashboard />);
-    expect(container).toBeDefined();
+    expect(screen.getByText('IND-VIAS DualSight DMS Cockpit')).toBeInTheDocument(); expect(screen.getByText('3D head')).toBeInTheDocument();
+    expect(screen.getByRole('img')).toHaveAttribute('src', 'http://192.168.50.2:8080/video.mjpg?retry=0');
+    expect(container.querySelector('#cvp-bgGrad')).toBeNull(); expect(screen.getByText('Live')).toBeInTheDocument();
+    expect(screen.getByLabelText('Board diagnostics')).toHaveTextContent('Video frames: 100');
   });
-
-  it('displays the dashboard title', () => {
-    render(<Dashboard />);
-    expect(screen.getByText('IND-VIAS DualSight DMS Cockpit')).toBeInTheDocument();
+  it('dims last values and shows a prominent stale warning', () => {
+    vi.mocked(useTelemetry).mockReturnValue({ data: telemetryFixture(), connected: true, mode: 'websocket', state: 'Live', stale: true });
+    render(<Dashboard />); expect(screen.getByRole('alert')).toHaveTextContent('Showing last known values');
+    expect(screen.getByTestId('telemetry-panels')).toHaveStyle({ opacity: '0.4' }); expect(screen.getByText('Telemetry stale')).toBeInTheDocument();
   });
-
-  it('shows DISCONNECTED status when not connected', () => {
-    render(<Dashboard />);
-    expect(screen.getByText('DISCONNECTED')).toBeInTheDocument();
+  it('shows video unavailable while telemetry remains live', () => {
+    render(<Dashboard />); fireEvent.error(screen.getByRole('img'));
+    expect(screen.getByText('Video unavailable')).toBeInTheDocument(); expect(screen.getByText('Live')).toBeInTheDocument();
   });
-
-  it('shows initializing message when no data is available', () => {
-    render(<Dashboard />);
-    expect(screen.getByText('Initializing telemetry...')).toBeInTheDocument();
+  it('loads video independently while waiting for telemetry', () => {
+    vi.mocked(useTelemetry).mockReturnValue({ data: null, connected: false, mode: 'websocket', state: 'Connecting', stale: false });
+    render(<Dashboard />); expect(screen.getByRole('img')).toBeInTheDocument(); expect(screen.getByText('Connecting')).toBeInTheDocument();
   });
-
-  it('shows LIVE status when connected with data', async () => {
-    const { useDmsTelemetry } = await import('../../hooks/useDmsTelemetry');
-    const mockedUseDmsTelemetry = vi.mocked(useDmsTelemetry);
-
-    mockedUseDmsTelemetry.mockReturnValue({
-      data: {
-        timestamp: Date.now(),
-        driverState: 'attentive' as any,
-        headPose: { yaw: 0, pitch: 0, roll: 0 },
-        gaze: { x: 0.5, y: 0.5, onRoad: true },
-        drowsiness: { perclos: 5, blinkRate: 15, blinkDuration: 150, yawnCount: 0, score: 10 },
-        distraction: { score: 5, gazeOffRoad: false, duration_ms: 0 },
-        seatbelt: { worn: true, confidence: 0.99 },
-        phoneSuspicion: { detected: false, confidence: 0, handPosition: 'on_wheel' },
-        confidence: { overall: 0.95, faceDetected: true, eyesVisible: true, quality: 'good' },
-        adasFusion: { ready: true, laneKeepAssist: true, collisionWarning: true, speedAdaptation: true, integrationScore: 95 },
-      },
-      connected: true,
-      mode: 'DUMMY',
-      receiverStatus: {
-        mode: 'DUMMY',
-        connected: true,
-        lastMessageTimeMs: Date.now(),
-        messageCount: 100,
-        error: null,
-        endpoint: null,
-      },
-      error: null,
-    });
-
-    render(<Dashboard />);
-    expect(screen.getByText('LIVE')).toBeInTheDocument();
+  it.each(['Disconnected', 'Reconnecting'] as const)('shows %s', state => {
+    vi.mocked(useTelemetry).mockReturnValue({ data: telemetryFixture(), connected: false, mode: 'websocket', state, stale: false });
+    render(<Dashboard />); expect(screen.getByText(state)).toBeInTheDocument();
+  });
+  it('selects and labels explicit dummy mode from the environment', () => {
+    vi.stubEnv('VITE_TELEMETRY_MODE', 'dummy');
+    vi.mocked(useTelemetry).mockReturnValue({ data: telemetryFixture(), connected: true, mode: 'dummy', state: 'Connecting', stale: false });
+    const { container } = render(<Dashboard />); expect(screen.getByText('Dummy mode')).toBeInTheDocument();
+    expect(useTelemetry).toHaveBeenCalledWith(expect.objectContaining({ mode: 'dummy' }));
+    expect(screen.queryByRole('img')).toBeNull(); expect(container.querySelector('#cvp-bgGrad')).not.toBeNull();
   });
 });

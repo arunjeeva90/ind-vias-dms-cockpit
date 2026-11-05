@@ -61,6 +61,11 @@ export interface ADASFusion {
 }
 
 export interface DMSTelemetry {
+  /** Present on versioned board messages; optional for legacy simulation adapters. */
+  version?: 1;
+  frameId?: number;
+  vehicle?: { speedKph: number | null };
+  stream?: { videoUrl: string; healthUrl: string };
   timestamp: number;
   driverState: DriverState;
   headPose: HeadPose;

@@ -211,7 +211,7 @@ function HeadModel({ yaw, pitch, roll, gazeX, gazeY, gazeOnRoad, eyesVisible }: 
     });
 
     return { scene: correctionGroup, eyeMidpoint: midpoint };
-  }, [gltf]);
+  }, [gltf, MODEL_Y_CORRECTION]);
 
   // Smooth rotation interpolation (applied to outer pose group only)
   useFrame(() => {

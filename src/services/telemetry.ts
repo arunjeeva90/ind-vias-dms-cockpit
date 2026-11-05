@@ -1,3 +1,4 @@
+import { buildVicharakConfig } from '../config/vicharak';
 import { DMSTelemetry } from '../types/dms';
 import { DummyTelemetryProvider } from './dummyTelemetry';
 import { WebSocketTelemetryProvider } from './websocketTelemetry';
@@ -20,7 +21,7 @@ export function createTelemetryProvider(
   config?: TelemetryConfig
 ): TelemetryProvider {
   if (mode === 'websocket') {
-    return new WebSocketTelemetryProvider(config?.url ?? 'ws://localhost:8080/dms');
+    return new WebSocketTelemetryProvider(config?.url ?? buildVicharakConfig().telemetryUrl);
   }
   return new DummyTelemetryProvider();
 }

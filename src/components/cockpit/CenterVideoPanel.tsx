@@ -1,9 +1,13 @@
 import React from 'react';
+import { LiveVideo, VideoState } from './LiveVideo';
 import { DMSTelemetry } from '../../types/dms';
 import { mapDriverState, getStateLabel, getStateColor } from '../../utils/driverStateMapping';
 
 interface CenterVideoPanelProps {
-  data: DMSTelemetry;
+  data: DMSTelemetry | null;
+  live?: boolean;
+  videoUrl?: string;
+  onVideoStatus?: (state: VideoState) => void;
 }
 
 function getGazeLabel(data: DMSTelemetry): string {
@@ -19,7 +23,10 @@ function getCurrentTime(): string {
   return now.toLocaleTimeString('en-IN', { hour12: false });
 }
 
-export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
+export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data, live = false, videoUrl, onVideoStatus }) => {
+  if (!data) return <div className="relative bg-dms-panel rounded-lg border border-dms-accent/30 h-full min-h-0">
+    {live && videoUrl && onVideoStatus && <LiveVideo url={videoUrl} onStatus={onVideoStatus} />}
+  </div>;
   const gazeLabel = getGazeLabel(data);
   const overallState = mapDriverState(data.driverState, data.confidence.overall);
   const stateLabel = getStateLabel(overallState);
@@ -46,7 +53,7 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
     <div className="relative bg-dms-panel rounded-lg border border-dms-accent/30 shadow-[0_0_12px_rgba(0,212,255,0.15),inset_0_0_4px_rgba(0,212,255,0.05)] overflow-hidden h-full flex flex-col">
       {/* Main Video Area - Simulated cabin view */}
       <div className="flex-1 relative min-h-0">
-        <svg
+        {live && videoUrl && onVideoStatus ? <LiveVideo url={videoUrl} onStatus={onVideoStatus} /> : <svg
           className="absolute inset-0 w-full h-full"
           viewBox="0 0 800 500"
           preserveAspectRatio="xMidYMid meet"
@@ -475,7 +482,7 @@ export const CenterVideoPanel: React.FC<CenterVideoPanelProps> = ({ data }) => {
 
           {/* ===== VIGNETTE EFFECT ===== */}
           <rect x="0" y="0" width="800" height="500" fill="url(#cvp-vignetteGrad)" />
-        </svg>
+        </svg>}
       </div>
 
       {/* ===== OVERLAY LABELS ===== */}

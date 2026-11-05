@@ -1,42 +1,26 @@
 import { DMSTelemetry } from '../types/dms';
-import { TelemetryProvider } from './telemetry';
+import type { TelemetryProvider } from './telemetry';
+import { isValidTelemetryPayload } from './validation/validateTelemetry';
 
-const REQUIRED_KEYS: ReadonlyArray<keyof DMSTelemetry> = [
-  'timestamp',
-  'driverState',
-  'headPose',
-  'gaze',
-  'drowsiness',
-  'distraction',
-  'seatbelt',
-  'phoneSuspicion',
-  'confidence',
-  'adasFusion',
-];
-
-function isValidTelemetryPayload(data: unknown): data is DMSTelemetry {
-  if (typeof data !== 'object' || data === null) return false;
-  for (const key of REQUIRED_KEYS) {
-    if (!(key in data)) return false;
-  }
-  return true;
-}
+export type SocketState = 'Connecting' | 'Live' | 'Disconnected' | 'Reconnecting';
 
 export class WebSocketTelemetryProvider implements TelemetryProvider {
   private ws: WebSocket | null = null;
   private callback: ((data: DMSTelemetry) => void) | null = null;
+  private statusCallback: ((state: SocketState) => void) | null = null;
   private connected = false;
-  private url: string;
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 10;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private shouldReconnect = false;
 
-  constructor(url: string) {
-    this.url = url;
-  }
+  constructor(private url: string) {}
+
+  onStatus(callback: (state: SocketState) => void): void { this.statusCallback = callback; }
+  onData(callback: (data: DMSTelemetry) => void): void { this.callback = callback; }
+  isConnected(): boolean { return this.connected; }
 
   connect(): void {
+    if (this.shouldReconnect) return;
     this.shouldReconnect = true;
     this.attemptConnection();
   }
@@ -44,86 +28,65 @@ export class WebSocketTelemetryProvider implements TelemetryProvider {
   disconnect(): void {
     this.shouldReconnect = false;
     this.reconnectAttempts = 0;
+    if (this.reconnectTimer !== null) clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
+    this.releaseSocket();
+    this.statusCallback?.('Disconnected');
+  }
 
-    if (this.reconnectTimer !== null) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
-    }
-
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
-    }
-
+  private releaseSocket(): void {
+    const socket = this.ws;
+    this.ws = null;
     this.connected = false;
-  }
-
-  onData(callback: (data: DMSTelemetry) => void): void {
-    this.callback = callback;
-  }
-
-  isConnected(): boolean {
-    return this.connected;
+    if (socket) {
+      socket.onopen = socket.onmessage = socket.onclose = socket.onerror = null;
+      socket.close();
+    }
   }
 
   private attemptConnection(): void {
+    if (!this.shouldReconnect) return;
+    this.statusCallback?.(this.reconnectAttempts ? 'Reconnecting' : 'Connecting');
     try {
-      this.ws = new WebSocket(this.url);
-
-      this.ws.onopen = () => {
-        // Guard against race condition: if disconnect() was called while
-        // the socket was in CONNECTING state, close immediately.
-        if (!this.shouldReconnect) {
-          this.ws?.close();
-          return;
-        }
+      const socket = new WebSocket(this.url);
+      this.ws = socket;
+      socket.onopen = () => {
+        if (this.ws !== socket || !this.shouldReconnect) return;
         this.connected = true;
+        // A TCP/WebSocket connection is not evidence of valid live telemetry.
+      };
+      socket.onmessage = event => {
+        if (this.ws !== socket || !this.shouldReconnect) return;
+        let parsed: unknown;
+        try { parsed = JSON.parse(event.data as string); } catch { return; }
+        if (!isValidTelemetryPayload(parsed)) return;
         this.reconnectAttempts = 0;
+        this.callback?.(parsed);
+        this.statusCallback?.('Live');
       };
-
-      this.ws.onmessage = (event: MessageEvent) => {
-        try {
-          const parsed: unknown = JSON.parse(event.data as string);
-          if (!isValidTelemetryPayload(parsed)) {
-            console.warn('[DMS WebSocket] Invalid payload: missing required keys');
-            return;
-          }
-          if (this.callback) {
-            this.callback(parsed);
-          }
-        } catch {
-          console.warn('[DMS WebSocket] Failed to parse message:', event.data);
-        }
-      };
-
-      this.ws.onclose = () => {
-        this.connected = false;
-        this.ws = null;
+      socket.onclose = () => {
+        if (this.ws !== socket) return;
+        this.releaseSocket();
+        this.statusCallback?.('Disconnected');
         this.scheduleReconnect();
       };
-
-      this.ws.onerror = () => {
-        console.warn('[DMS WebSocket] Connection error');
-        // onclose will be called after onerror
+      socket.onerror = () => {
+        if (this.ws !== socket) return;
+        this.releaseSocket();
+        this.statusCallback?.('Disconnected');
+        this.scheduleReconnect();
       };
     } catch {
-      console.warn('[DMS WebSocket] Failed to create WebSocket');
+      this.statusCallback?.('Disconnected');
       this.scheduleReconnect();
     }
   }
 
   private scheduleReconnect(): void {
-    if (!this.shouldReconnect) return;
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.warn('[DMS WebSocket] Max reconnection attempts reached');
-      return;
-    }
-
-    // Exponential backoff: 1s, 2s, 4s, 8s, ... up to 30s
-    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
-    this.reconnectAttempts++;
-
+    if (!this.shouldReconnect || this.reconnectTimer !== null) return;
+    const delay = Math.min(1000 * 2 ** this.reconnectAttempts++, 30000);
     this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
       this.attemptConnection();
     }, delay);
   }
