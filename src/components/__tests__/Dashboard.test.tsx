@@ -10,6 +10,8 @@ vi.mock('../cockpit/BottomTimeline', () => ({ BottomTimeline: () => <div>Timelin
 describe('Dashboard', () => {
   beforeEach(() => {
     vi.stubEnv('VITE_TELEMETRY_MODE', 'websocket');
+    vi.stubEnv('VITE_VICHARAK_HOST', '192.168.50.2');
+    vi.stubEnv('VITE_VICHARAK_PORT', '8080');
     vi.mocked(useTelemetry).mockReturnValue({ data: telemetryFixture(), connected: true, mode: 'websocket', state: 'Live', stale: false });
   });
   afterEach(() => { cleanup(); vi.unstubAllEnvs(); });

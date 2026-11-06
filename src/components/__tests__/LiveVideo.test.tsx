@@ -14,3 +14,16 @@ it('retries image errors with cache busting, recovers and cleans up', () => {
   fireEvent.load(screen.getByRole('img')); expect(status).toHaveBeenLastCalledWith('live'); expect(screen.queryByRole('status')).toBeNull();
   fireEvent.error(screen.getByRole('img')); unmount(); expect(vi.getTimerCount()).toBe(0);
 });
+
+it('shows decoded MJPEG frames even when the continuous response never fires load', () => {
+  const status = vi.fn();
+  const { unmount } = render(<LiveVideo url="http://169.254.101.235:8080/video.mjpg" onStatus={status} />);
+  const image = screen.getByRole('img');
+  expect(image).not.toHaveClass('opacity-0');
+  Object.defineProperty(image, 'naturalWidth', { configurable: true, value: 1280 });
+  Object.defineProperty(image, 'naturalHeight', { configurable: true, value: 720 });
+  act(() => vi.advanceTimersByTime(250));
+  expect(status).toHaveBeenLastCalledWith('live');
+  expect(screen.queryByRole('status')).toBeNull();
+  unmount(); expect(vi.getTimerCount()).toBe(0);
+});

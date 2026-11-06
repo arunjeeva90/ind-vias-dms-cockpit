@@ -224,7 +224,8 @@ function HeadModel({ yaw, pitch, roll, gazeX, gazeY, gazeOnRoad, eyesVisible }: 
       // Smooth lerp for rotation
       const lerpFactor = 0.08;
       poseGroupRef.current.rotation.y += (targetYaw - poseGroupRef.current.rotation.y) * lerpFactor;
-      poseGroupRef.current.rotation.x += (-targetPitch - poseGroupRef.current.rotation.x) * lerpFactor;
+      // Board pitch is positive looking down; positive Three.js X rotation tilts the face down.
+      poseGroupRef.current.rotation.x += (targetPitch - poseGroupRef.current.rotation.x) * lerpFactor;
       poseGroupRef.current.rotation.z += (targetRoll - poseGroupRef.current.rotation.z) * lerpFactor;
     }
   });
